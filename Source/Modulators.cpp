@@ -42,7 +42,7 @@ void LFO<SampleType>::setParameters(const OscillatorParameters& params)
 }
 
 template <typename SampleType>
-const SignalGenData LFO<SampleType>::renderAudioOutput()
+const SignalGenData<SampleType> LFO<SampleType>::renderAudioOutput()
 {
     checkAndWrapModulo(modCounter, phaseInc);
     
@@ -50,7 +50,7 @@ const SignalGenData LFO<SampleType>::renderAudioOutput()
     
     advanceAndCheckWrapModulo(modCounterQP, 0.25);
     
-    SignalGenData output;
+    SignalGenData<SampleType> output;
     
     if (lfoParameters.waveform == generatorWaveform::kSin)
     {
@@ -193,4 +193,12 @@ const SampleType Line<SampleType>::renderAudioOutput()
         else
             output = destinationValue;
     }
+    
+    return output;
 }
+
+template class LFO<double>;
+template class LFO<float>;
+
+template class Line<double>;
+template class Line<float>;

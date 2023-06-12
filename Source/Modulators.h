@@ -11,25 +11,27 @@
 #include <JuceHeader.h>
 
 // pure virtual base class
-template <typename T>
+/*
+template <typename SampleType>
 class IAudioSignalGenerator
 {
 public:
     virtual ~IAudioSignalGenerator() = default;
     
     virtual bool reset(double _sampleRate) = 0;
-    virtual const T renderAudioOutput() = 0;
+    virtual const SampleType renderAudioOutput() = 0;
 };
-
+*/
 //==============================================================================
+template <typename SampleType>
 struct SignalGenData
 {
     SignalGenData() {}
     
-    double normalOutput = 0.0;
-    double invertedOutput = 0.0;
-    double quadPhaseOutput_pos = 0.0;
-    double quadPhaseOutput_neg = 0.0;
+    SampleType normalOutput = 0.0;
+    SampleType invertedOutput = 0.0;
+    SampleType quadPhaseOutput_pos = 0.0;
+    SampleType quadPhaseOutput_neg = 0.0;
 };
 
 //================ LFO ================
@@ -68,7 +70,7 @@ inline SampleType bipolarToUnipolar(SampleType value)
 
 //==============================================================================
 template <typename SampleType>
-class LFO : public IAudioSignalGenerator<SampleType>
+class LFO// : public IAudioSignalGenerator<SampleType>
 {
 public:
     LFO();
@@ -80,7 +82,7 @@ public:
     
     void setParameters(const OscillatorParameters& params);
     
-    virtual const SignalGenData renderAudioOutput();
+    const SignalGenData<SampleType> renderAudioOutput();
     
 protected:
     
@@ -108,7 +110,7 @@ protected:
 //================ Line with start/end and ramp time ================
 //==============================================================================
 template <typename SampleType>
-class Line : public IAudioSignalGenerator<SampleType>
+class Line// : public IAudioSignalGenerator<SampleType>
 {
 public:
     Line();
