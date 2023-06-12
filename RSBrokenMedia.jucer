@@ -22,6 +22,8 @@
             file="Source/CircularBuffer.cpp"/>
       <FILE id="pj7hA5" name="CircularBuffer.h" compile="0" resource="0"
             file="Source/CircularBuffer.h"/>
+      <FILE id="OT85F1" name="RampRand.cpp" compile="1" resource="0" file="Source/RampRand.cpp"/>
+      <FILE id="UkEUEA" name="RampRand.h" compile="0" resource="0" file="Source/RampRand.h"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
