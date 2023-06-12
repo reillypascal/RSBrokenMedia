@@ -10,6 +10,8 @@
 
 #include <JuceHeader.h>
 #include "CircularBuffer.h"
+#include "Modulators.h"
+#include "Utilities.h"
 
 class BrokenPlayer : public juce::AudioProcessor
 {

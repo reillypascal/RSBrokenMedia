@@ -7,12 +7,7 @@
 */
 
 #include "Modulators.h"
-
-//================ Ramped random choice ================
-//==============================================================================
-template <typename SampleType>
-RampRand<SampleType>::RampRand() {}
-
+#include "Utilities.h"
 
 //================ LFO ================
 //==============================================================================
@@ -140,4 +135,62 @@ inline SampleType LFO<SampleType>::parabolicSine(SampleType angle)
     SampleType y = B * angle + C * angle * fabs(angle);
     y = P * (y * fabs(y) - y) + y;
     return y;
+}
+
+//================ Line with start/end and ramp time ================
+//==============================================================================
+template <typename SampleType>
+Line<SampleType>::Line() {}
+
+template <typename SampleType>
+Line<SampleType>::~Line() = default;
+
+template <typename SampleType>
+bool Line<SampleType>::reset(SampleType _sampleRate)
+{
+    sampleRate = _sampleRate;
+    phaseInc = (1000 / rampTime) / sampleRate;
+    
+    return true;
+}
+
+template <typename SampleType>
+SampleType Line<SampleType>::getParameters() { return rampTime; }
+
+template <typename SampleType>
+void Line<SampleType>::setParameters(const SampleType& newRampTime)
+{
+    if (rampTime != newRampTime)
+        rampTime = newRampTime;
+}
+
+template <typename SampleType>
+void Line<SampleType>::setDestination(const SampleType& newDestination)
+{
+    if (destinationValue != newDestination)
+    {
+        destinationValue = newDestination;
+        startingValue = output;
+    }
+    
+    phaseInc = ((1000 / rampTime) / sampleRate) * (destinationValue - output);
+}
+
+template <typename SampleType>
+const SampleType Line<SampleType>::renderAudioOutput()
+{
+    if (startingValue < destinationValue)
+    {
+        if (output < destinationValue)
+            output += phaseInc;
+        else
+            output = destinationValue;
+    }
+    else
+    {
+        if (output > destinationValue)
+            output += phaseInc;
+        else
+            output = destinationValue;
+    }
 }
