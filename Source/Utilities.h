@@ -24,6 +24,8 @@ struct Delta
     T operator()(const T& currentVal)
     {
         T delta = currentVal - prevVal;
+        if (delta <= __FLT_EPSILON__ || isnan(delta))
+            delta = 0;
         prevVal = currentVal;
         
         return delta;

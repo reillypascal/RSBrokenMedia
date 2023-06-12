@@ -26,11 +26,6 @@ void BrokenPlayer::prepareToPlay(double sampleRate, int samplesPerBlock)
     std::fill(mReadPosition.begin(), mReadPosition.end(), 0);
     std::fill(mPlaybackRate.begin(), mPlaybackRate.end(), 1.0);
     
-    lfoParameters.frequency_Hz = 1.5;
-    lfoParameters.waveform = generatorWaveform::kSaw;
-    lfo.setParameters(lfoParameters);
-    lfo.reset(getSampleRate());
-    
     leftLine.setParameters(rampTime);
     rightLine.setParameters(rampTime);
     leftLine.reset(getSampleRate());
@@ -48,6 +43,8 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
+    clockCycle = static_cast<int>(clockPeriod * 44.1);
+    
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
@@ -57,26 +54,32 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
     
     for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
     {
-        lfoOutput = lfo.renderAudioOutput();
-        
-        float delta = deltaObj(lfoOutput.normalOutput);
-        if (delta < 0.0f)
+        if (clockCounter == 0)
         {
             // adjust random weighting
-            leftLine.setDestination(tapeBendVals.at(rand() % tapeBendVals.size()));
-            rightLine.setDestination(tapeBendVals.at(rand() % tapeBendVals.size()));
+            float leftDest = tapeBendVals.at(rand() % tapeBendVals.size());
+            if (rand() % 1 < tapeRevProb)
+                leftDest *= -1;
+            float rightDest = tapeBendVals.at(rand() % tapeBendVals.size());
+            if (rand() % 1 < tapeRevProb)
+                rightDest *= -1;
+            
+            leftLine.setDestination(leftDest);
+            rightLine.setDestination(rightDest);
         }
+        clockCounter++;
+        clockCounter %= clockCycle;
         
         for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
         {
             auto* channelData = buffer.getWritePointer (channel);
             
-            channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
-            
             if (channel == 0)
                 mPlaybackRate.at(0) = leftLine.renderAudioOutput();
             else if (channel == 1)
                 mPlaybackRate.at(1) = rightLine.renderAudioOutput();
+            
+            channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
             
             mReadPosition.at(channel) += mPlaybackRate.at(channel);
             mReadPosition.at(channel) = wrap(mReadPosition.at(channel), static_cast<float>(mGranBufferLength));
@@ -85,9 +88,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
 }
 
 void BrokenPlayer::reset()
-{
-    lfo.reset(getSampleRate());
-    
+{    
     leftLine.reset(getSampleRate());
     rightLine.reset(getSampleRate());
 }
@@ -111,7 +112,6 @@ void BrokenPlayer::setStateInformation(const void*, int) {}
 
 float BrokenPlayer::wrap(float a, float b)
 {
-    float remainder = a - (floor(a/b) * b);
-    
-    return (remainder < 0) ? remainder + b : remainder;
+    float mod = fmodf(a, b);
+    return (a >= 0 ? 0 : b) + (mod > __FLT_EPSILON__ || !isnan(mod) ? mod : 0);
 }

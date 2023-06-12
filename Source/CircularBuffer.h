@@ -72,9 +72,8 @@ public:
     SampleType readSample(int channel, SampleType readPosition)
     {
         // look at DelayLine implementation
-        SampleType intpart;
-        readPosFrac = modf(readPosition, &intpart);
-        readPosInt = static_cast<int>(intpart);
+        readPosFrac = readPosition - floor(readPosition);
+        readPosInt = static_cast<int>(floor(readPosition));
         
         int index1 = readPosInt;
         int index2 = readPosInt + 1;
@@ -84,7 +83,7 @@ public:
             index1 %= mTotalSize;
             index2 %= mTotalSize;
         }
-        
+                
         SampleType value1 = mCircularBuffer.getSample(channel, index1);
         SampleType value2 = mCircularBuffer.getSample(channel, index2);
         
