@@ -11,6 +11,7 @@ TODO:
 
 BrokenPlayer::BrokenPlayer() {}
 
+//==============================================================================
 void BrokenPlayer::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     juce::dsp::ProcessSpec spec;
@@ -30,7 +31,7 @@ void BrokenPlayer::prepareToPlay(double sampleRate, int samplesPerBlock)
                   tapeSpeedLine.end(),
                   [this](auto& line)
     {
-        line.setParameters.setParameters(rampTime);
+        line.setParameters(rampTime);
         line.reset(getSampleRate());
     });
     
@@ -38,15 +39,17 @@ void BrokenPlayer::prepareToPlay(double sampleRate, int samplesPerBlock)
                   tapeStopLine.end(),
                   [this](auto& line)
     {
-        line.setParameters.setParameters(rampTime);
+        line.setParameters(rampTime);
         line.reset(getSampleRate());
     });
     
     srand(static_cast<uint32_t>(time(NULL)));
 }
 
+//==============================================================================
 void BrokenPlayer::releaseResources() {}
 
+//==============================================================================
 void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -64,52 +67,61 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
         
         mCircularBuffer.fillNextBlock(channel, buffer.getNumSamples(), channelData);
     }
-    
-    for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+    //================ channel/sample loops ================
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
     {
-        if (clockCounter == 0)
-        {
-            // set new destinations for L/R tape speeds
-            std::for_each(tapeSpeedLine.begin(),
-                          tapeSpeedLine.end(),
-                          [this](Line<float>& line)
-            {
-                if (randomFloat() < tapeBendProb)
-                {
-                    int index = rand() % tapeBendDepth;
-                    float dest = tapeBendVals.at(index);
-                    line.setDestination(dest);
-                }
-            });
-            
-            if (randomFloat() < tapeRevProb)
-                tapeDirMultiplier = -1;
-            else
-                tapeDirMultiplier = 1;
-            
-            // initialize L/R tape stops
-            std::for_each(tapeStopLine.begin(),
-                          tapeStopLine.end(),
-                          [this](Line<float>& line)
-            {
-                if (randomFloat() < tapeStopProb)
-                {
-                    line.setParameters(rampTime);
-                    line.setDestination(0);
-                }
-            });
-            
-            std::for_each(skipProb.begin(),
-                          skipProb.end(),
-                          [this](float& prob){ prob = randomFloat(); });
-        }
-        clockCounter++;
-        clockCounter %= clockCycle;
+        auto* channelData = buffer.getWritePointer (channel);
         
-        for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
-            auto* channelData = buffer.getWritePointer (channel);
+            //================ clock, clocked settings ================
+            if (clockCounter == 0)
+            {
+                //================ L/R tape speed destinations ================
+                std::for_each(tapeSpeedLine.begin(),
+                              tapeSpeedLine.end(),
+                              [this](Line<float>& line)
+                {
+                    if (randomFloat() < tapeBendProb)
+                    {
+                        int index = rand() % tapeBendDepth;
+                        float dest = tapeBendVals.at(index);
+                        line.setDestination(dest);
+                    }
+                });
+                
+                if (randomFloat() < tapeRevProb)
+                    tapeDirMultiplier = -1;
+                else
+                    tapeDirMultiplier = 1;
+                
+                //================ L/R tape stops ================
+                std::for_each(tapeStopLine.begin(),
+                              tapeStopLine.end(),
+                              [this](Line<float>& line)
+                {
+                    if (randomFloat() < tapeStopProb)
+                    {
+                        line.setParameters(rampTime);
+                        line.setDestination(0);
+                    }
+                });
+                
+                //================ skip probs ================
+                std::for_each(skipProb.begin(),
+                              skipProb.end(),
+                              [this](float& prob){ prob = randomFloat(); });
+                
+                //================ lofi FX ================
+            }
+            if (channel == 0)
+            {
+                clockCounter++;
+                clockCounter %= clockCycle;
+            }
             
+            
+            //================ tape speed adjustments ================
             // ramp back up if stop completed
             float tapeStopSpeed = tapeStopLine.at(channel).renderAudioOutput();
             if (tapeStopSpeed < 0.01)
@@ -121,7 +133,8 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
             mPlaybackRate.at(channel) = tapeSpeedLine.at(channel).renderAudioOutput() * tapeDirMultiplier;
             mPlaybackRate.at(channel) *= tapeStopSpeed;
             
-            // skips
+            //================ playback ================
+            //================ skips ================
             if (skipProb.at(channel) < cdSkipProb)
             {
                 // read (and start next slice if necessary) before incrementing and wrapping
@@ -146,7 +159,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 ++cdSkipPlayCounter.at(channel);
                 cdSkipPlayCounter.at(channel) %= cdSkipPlayLength.at(channel);
             }
-            // loops
+            //================ loops ================
             else if (skipProb.at(channel) < randomLoopProb)
             {
                 std::vector<int> randomLoop = randomLooper.at(channel).advanceCtrAndReturn();
@@ -172,7 +185,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 ++randomLooperPlayCounter.at(channel);
                 randomLooperPlayCounter.at(channel) %= randomLooperPlayLength.at(channel);
             }
-            // tape FX only
+            //================ tape FX only ================
             else
             {
                 channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
@@ -184,6 +197,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
     }
 }
 
+//==============================================================================
 void BrokenPlayer::reset()
 {    
     for (int line = 0; line < tapeSpeedLine.size(); ++line)
@@ -193,6 +207,7 @@ void BrokenPlayer::reset()
     }
 }
 
+//==============================================================================
 juce::AudioProcessorEditor* BrokenPlayer::createEditor() { return nullptr; }
 bool BrokenPlayer::hasEditor() const { return false; }
 
@@ -210,6 +225,7 @@ void BrokenPlayer::changeProgramName(int, const juce::String&) {}
 void BrokenPlayer::getStateInformation(juce::MemoryBlock&) {}
 void BrokenPlayer::setStateInformation(const void*, int) {}
 
+//==============================================================================
 void BrokenPlayer::setClockSpeed(float newClockSpeed) { clockPeriod = newClockSpeed; }
 void BrokenPlayer::setAnalogFX(float newAnalogFX)
 {
@@ -228,7 +244,7 @@ void BrokenPlayer::setAnalogFX(float newAnalogFX)
 }
 void BrokenPlayer::setDigitalFX(float newDigitalFX)
 {
-    cdSkipProb = newDigitalFX * 0.35;
+    cdSkipProb = newDigitalFX * 0.7;
     randomLoopProb = newDigitalFX;
 }
 void BrokenPlayer::setLofiFX(float newLofiFX) {}
