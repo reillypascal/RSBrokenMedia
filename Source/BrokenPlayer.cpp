@@ -26,17 +26,21 @@ void BrokenPlayer::prepareToPlay(double sampleRate, int samplesPerBlock)
     std::fill(mReadPosition.begin(), mReadPosition.end(), 0);
     std::fill(mPlaybackRate.begin(), mPlaybackRate.end(), 1.0);
     
-    for (int line = 0; line < tapeSpeedLine.size(); ++line)
+    std::for_each(tapeSpeedLine.begin(),
+                  tapeSpeedLine.end(),
+                  [this](auto& line)
     {
-        tapeSpeedLine.at(line).setParameters(rampTime);
-        tapeSpeedLine.at(line).reset(getSampleRate());
-    }
+        line.setParameters.setParameters(rampTime);
+        line.reset(getSampleRate());
+    });
     
-    for (int line = 0; line < tapeStopLine.size(); ++line)
+    std::for_each(tapeStopLine.begin(),
+                  tapeStopLine.end(),
+                  [this](auto& line)
     {
-        tapeStopLine.at(line).setParameters(rampTime);
-        tapeStopLine.at(line).reset(getSampleRate());
-    }
+        line.setParameters.setParameters(rampTime);
+        line.reset(getSampleRate());
+    });
     
     srand(static_cast<uint32_t>(time(NULL)));
 }
@@ -94,6 +98,10 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                     line.setDestination(0);
                 }
             });
+            
+            std::for_each(skipProb.begin(),
+                          skipProb.end(),
+                          [this](float& prob){ prob = randomFloat(); });
         }
         clockCounter++;
         clockCounter %= clockCycle;
@@ -113,10 +121,65 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
             mPlaybackRate.at(channel) = tapeSpeedLine.at(channel).renderAudioOutput() * tapeDirMultiplier;
             mPlaybackRate.at(channel) *= tapeStopSpeed;
             
-            channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
-            
-            mReadPosition.at(channel) += mPlaybackRate.at(channel);
-            mReadPosition.at(channel) = wrap(mReadPosition.at(channel), static_cast<float>(mGranBufferLength));
+            // skips
+            if (skipProb.at(channel) < cdSkipProb)
+            {
+                // read (and start next slice if necessary) before incrementing and wrapping
+                if (cdSkipPlayCounter.at(channel) == 0)
+                {
+                    std::vector<int> skipLoop = cdSkipper.at(channel).advanceCtrAndReturn();
+                    
+                    mReadPosition.at(channel) = skipLoop.at(0);
+                    cdSkipPlayLength.at(channel) = skipLoop.at(1);
+                    
+                    channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
+                }
+                else
+                {
+                    channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
+                }
+                
+                // increment/wrap read position
+                mReadPosition.at(channel) += mPlaybackRate.at(channel);
+                mReadPosition.at(channel) = wrap(mReadPosition.at(channel), static_cast<float>(mBentBufferLength));
+                // increment/wrap skip timing counter
+                ++cdSkipPlayCounter.at(channel);
+                cdSkipPlayCounter.at(channel) %= cdSkipPlayLength.at(channel);
+            }
+            // loops
+            else if (skipProb.at(channel) < randomLoopProb)
+            {
+                std::vector<int> randomLoop = randomLooper.at(channel).advanceCtrAndReturn();
+                
+                if (randomLooperPlayCounter.at(channel) == 0)
+                    mReadPosition.at(channel) = randomLoop.at(0);
+                
+                if (randomLoop != prevRandomLoop)
+                {
+                    prevRandomLoop = randomLoop;
+                    
+                    mReadPosition.at(channel) = randomLoop.at(0);
+                    randomLooperPlayLength.at(channel) = randomLoop.at(1);
+                    randomLooperPlayCounter.at(channel) = 0;
+                }
+                
+                channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
+                
+                // increment/wrap read position
+                mReadPosition.at(channel) += mPlaybackRate.at(channel);
+                mReadPosition.at(channel) = wrap(mReadPosition.at(channel), static_cast<float>(mBentBufferLength));
+                // increment wrap timing counter
+                ++randomLooperPlayCounter.at(channel);
+                randomLooperPlayCounter.at(channel) %= randomLooperPlayLength.at(channel);
+            }
+            // tape FX only
+            else
+            {
+                channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
+                
+                mReadPosition.at(channel) += mPlaybackRate.at(channel);
+                mReadPosition.at(channel) = wrap(mReadPosition.at(channel), static_cast<float>(mBentBufferLength));
+            }
         }
     }
 }
@@ -159,9 +222,13 @@ void BrokenPlayer::setAnalogFX(float newAnalogFX)
     else
         tapeBendDepth = 4;
     
-    tapeRevProb = std::clamp<float>(newAnalogFX * 1.5, 0.0, 1.0, [](const float& a, const float& b) { return a < b; });
+    tapeRevProb = std::clamp<float>(newAnalogFX * 1.5, 0.0, 0.8, [](const float& a, const float& b) { return a < b; });
     
     tapeStopProb = 0.4 * pow(newAnalogFX, 1.5);
 }
-void BrokenPlayer::setDigitalFX(float newDigitalFX) {}
+void BrokenPlayer::setDigitalFX(float newDigitalFX)
+{
+    cdSkipProb = newDigitalFX * 0.35;
+    randomLoopProb = newDigitalFX;
+}
 void BrokenPlayer::setLofiFX(float newLofiFX) {}
