@@ -2,7 +2,8 @@
   ==============================================================================
 
 TODO:
- - adjust random weighting
+ - fix tape speeds acting like tape stops
+ - add setters
 
   ==============================================================================
 */
@@ -69,26 +70,26 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
             std::for_each(tapeSpeedLine.begin(),
                           tapeSpeedLine.end(),
                           [this](Line<float>& line)
-                {
-                    float index = 2 + scale(randomFloat(), 0.0f, 1.0f, -2.0f * tapeBendProb, 2.0f * tapeBendProb);
-                    float dest = tapeBendVals.at(index);
-                    if (randomFloat() < tapeRevProb)
-                        dest *= -1;
-                    
-                    line.setDestination(dest);
-                });
+            {
+                float index = 2 + scale(randomFloat(), 0.0f, 1.0f, -2.0f * tapeBendProb, 2.0f * tapeBendProb);
+                float dest = tapeBendVals.at(index);
+                if (randomFloat() < tapeRevProb)
+                    dest *= -1;
+                
+                line.setDestination(dest);
+            });
             
             // initialize L/R tape stops
             std::for_each(tapeStopLine.begin(),
                           tapeStopLine.end(),
                           [this](Line<float>& line)
+            {
+                if (randomFloat() < tapeStopProb)
                 {
-                    if (randomFloat() < tapeStopProb)
-                    {
-                        line.setParameters(rampTime);
-                        line.setDestination(0);
-                    }
-                });
+                    line.setParameters(rampTime);
+                    line.setDestination(0);
+                }
+            });
         }
         clockCounter++;
         clockCounter %= clockCycle;
@@ -106,7 +107,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
             }
             
             mPlaybackRate.at(channel) = tapeSpeedLine.at(channel).renderAudioOutput();
-            mPlaybackRate.at(channel) *= tapeStopSpeed;
+            //mPlaybackRate.at(channel) *= tapeStopSpeed;
             
             channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
             
