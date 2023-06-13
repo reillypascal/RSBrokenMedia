@@ -66,7 +66,10 @@ private:
     std::atomic<float>* digitalFXParameter = nullptr;
     std::atomic<float>* lofiFXParameter = nullptr;
     
+    std::atomic<float>* dryWetMixParameter = nullptr;
+    
     BrokenPlayer brokenPlayer;
+    juce::dsp::DryWetMixer<float> dryWetMixer;
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RSBrokenMediaAudioProcessor)

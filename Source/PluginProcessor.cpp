@@ -41,13 +41,20 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     "Lo-Fi FX",
                                                     0.0f,
                                                     1.0f,
-                                                    0.0f)
+                                                    0.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "dryWetMix", 1 },
+                                                    "Dry/Wet Mix",
+                                                    0.0f,
+                                                    1.0f,
+                                                    0.45f)
 })
 {
     clockSpeedParameter = parameters.getRawParameterValue("clockSpeed");
     analogFXParameter = parameters.getRawParameterValue("analogFX");
     digitalFXParameter = parameters.getRawParameterValue("digitalFX");
     lofiFXParameter = parameters.getRawParameterValue("lofiFX");
+    
+    dryWetMixParameter = parameters.getRawParameterValue("dryWetMix");
 }
 
 RSBrokenMediaAudioProcessor::~RSBrokenMediaAudioProcessor()
@@ -126,6 +133,13 @@ void RSBrokenMediaAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     }
     brokenPlayer.setChannelLayoutOfBus(true, 0, layout);
     brokenPlayer.prepareToPlay(sampleRate, samplesPerBlock);
+    
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = getTotalNumInputChannels();
+    
+    dryWetMixer.prepare(spec);
 }
 
 void RSBrokenMediaAudioProcessor::releaseResources()
@@ -174,6 +188,11 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     float digitalFX = static_cast<float>(*digitalFXParameter);
     float lofiFX = static_cast<float>(*lofiFXParameter);
     
+    float dryWetMix = static_cast<float>(*dryWetMixParameter);
+    
+    dryWetMixer.setWetMixProportion(dryWetMix);
+    dryWetMixer.pushDrySamples(juce::dsp::AudioBlock<float> {buffer});
+    
     brokenPlayer.setClockSpeed(clockSpeed);
     brokenPlayer.setAnalogFX(analogFX);
     brokenPlayer.setDigitalFX(digitalFX);
@@ -181,6 +200,7 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 
     brokenPlayer.processBlock(buffer, midiMessages);
     
+    dryWetMixer.mixWetSamples(juce::dsp::AudioBlock<float> {buffer});
 }
 
 //==============================================================================

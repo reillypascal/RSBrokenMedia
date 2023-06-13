@@ -53,15 +53,21 @@ private:
     juce::Label digitalFXLabel;
     juce::Label lofiFXLabel;
     
+    juce::Label dryWetMixLabel;
+    
     juce::Slider clockSlider;
     juce::Slider analogFXSlider;
     juce::Slider digitalFXSlider;
     juce::Slider lofiFXSlider;
     
+    juce::Slider dryWetMixSlider;
+    
     std::unique_ptr<SliderAttachment> clockAttachment;
     std::unique_ptr<SliderAttachment> analogFXAttachment;
     std::unique_ptr<SliderAttachment> digitalFXAttachment;
     std::unique_ptr<SliderAttachment> lofiFXAttachment;
+    
+    std::unique_ptr<SliderAttachment> dryWetMixAttachment;
     
     const int textBoxWidth = 70;
     const int textBoxHeight = 25;

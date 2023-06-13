@@ -30,6 +30,11 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     lofiFXLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(lofiFXLabel);
     
+    // labels row 2
+    dryWetMixLabel.setText("Dry/Wet Mix", juce::dontSendNotification);
+    dryWetMixLabel.setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(dryWetMixLabel);
+    
     // sliders row 1
     clockSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     clockSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
@@ -50,6 +55,12 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     lofiFXSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
     addAndMakeVisible(lofiFXSlider);
     lofiFXAttachment.reset(new SliderAttachment(valueTreeState, "lofiFX", lofiFXSlider));
+    
+    // sliders row 2
+    dryWetMixSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    dryWetMixSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
+    addAndMakeVisible(dryWetMixSlider);
+    dryWetMixAttachment.reset(new SliderAttachment(valueTreeState, "dryWetMix", dryWetMixSlider));
     
     getLookAndFeel().setDefaultLookAndFeel(&grayBlueLookAndFeel);
     
@@ -80,9 +91,9 @@ void RSBrokenMediaAudioProcessorEditor::resized()
     //const int menuWidth = 200;
     //const int menuHeight = 20;
     const int sliderWidth1 = (getWidth() - (2 * xBorder)) / 4;
-    //const int sliderWidth2 = (getWidth() - (2 * xBorder)) / 5;
+    const int sliderWidth2 = (getWidth() - (2 * xBorder)) / 5;
     const int sliderHeight1 = (getHeight() - (yBorderTop + yBorderBottom) - rowSpacer) / 2;
-    //const int sliderHeight2 = sliderHeight1 * 0.8;
+    const int sliderHeight2 = sliderHeight1 * 0.8;
     const int textLabelWidth = 150;
     const int textLabelHeight = 20;
     const int textLabelSpacer = 7;
@@ -93,9 +104,15 @@ void RSBrokenMediaAudioProcessorEditor::resized()
     digitalFXSlider.setBounds(xBorder + (2 * sliderWidth1), yBorderTop, sliderWidth1, sliderHeight1);
     lofiFXSlider.setBounds(xBorder + (3 * sliderWidth1), yBorderTop, sliderWidth1, sliderHeight1);
     
+    // row 2 sliders
+    dryWetMixSlider.setBounds(xBorder + (sliderWidth2 * 4), yBorderTop + sliderHeight1 + rowSpacer, sliderWidth2, sliderHeight2);
+    
     // row 1 labels
     clockLabel.setBounds(xBorder + ((sliderWidth1 / 2) - (textLabelWidth / 2)), yBorderTop + sliderHeight1 + textLabelSpacer, textLabelWidth, textLabelHeight);
     analogFXLabel.setBounds(xBorder + sliderWidth1 + ((sliderWidth1 / 2) - (textLabelWidth / 2)), yBorderTop + sliderHeight1 + textLabelSpacer, textLabelWidth, textLabelHeight);
     digitalFXLabel.setBounds(xBorder + (sliderWidth1 * 2) + ((sliderWidth1 / 2) - (textLabelWidth / 2)), yBorderTop + sliderHeight1 + textLabelSpacer, textLabelWidth, textLabelHeight);
     lofiFXLabel.setBounds(xBorder + (sliderWidth1 * 3) + ((sliderWidth1 / 2) - (textLabelWidth / 2)), yBorderTop + sliderHeight1 + textLabelSpacer, textLabelWidth, textLabelHeight);
+    
+    // row 2 labels
+    dryWetMixLabel.setBounds(xBorder + (sliderWidth2 * 4) + (sliderWidth2 / 2) - (textLabelWidth / 2), yBorderTop + sliderHeight1 + sliderHeight2 + rowSpacer + textLabelSpacer, textLabelWidth, textLabelHeight);
 }
