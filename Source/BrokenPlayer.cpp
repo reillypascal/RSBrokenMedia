@@ -238,7 +238,7 @@ void BrokenPlayer::setAnalogFX(float newAnalogFX)
 }
 void BrokenPlayer::setDigitalFX(float newDigitalFX)
 {
-    cdSkipProb = newDigitalFX * 0.5;
+    cdSkipProb = newDigitalFX * 0.65;
     randomLoopProb = newDigitalFX;
 }
 void BrokenPlayer::setLofiFX(float newLofiFX) {}
