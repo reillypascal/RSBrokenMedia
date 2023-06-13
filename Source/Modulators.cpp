@@ -7,7 +7,6 @@
 */
 
 #include "Modulators.h"
-#include "Utilities.h"
 
 //================ LFO ================
 //==============================================================================
@@ -149,19 +148,21 @@ template <typename SampleType>
 bool Line<SampleType>::reset(SampleType _sampleRate)
 {
     sampleRate = _sampleRate;
-    phaseInc = (1000 / rampTime) / sampleRate;
+    //rampTimeSamps = sampleRate * rampTimeSecs;
     
     return true;
 }
 
 template <typename SampleType>
-SampleType Line<SampleType>::getParameters() { return rampTime; }
+SampleType Line<SampleType>::getParameters() { return rampTimeSecs; }
 
 template <typename SampleType>
 void Line<SampleType>::setParameters(const SampleType& newRampTime)
 {
-    if (rampTime != newRampTime)
-        rampTime = newRampTime;
+    if (rampTimeSamps != newRampTime)
+        rampTimeSamps = newRampTime;
+    
+    //rampTimeSamps = sampleRate * rampTimeSecs;
 }
 
 template <typename SampleType>
@@ -173,7 +174,7 @@ void Line<SampleType>::setDestination(const SampleType& newDestination)
         startingValue = output;
     }
     
-    phaseInc = ((1000 / rampTime) / sampleRate) * (destinationValue - output);
+    phaseInc = (destinationValue - startingValue) / rampTimeSamps;
 }
 
 template <typename SampleType>

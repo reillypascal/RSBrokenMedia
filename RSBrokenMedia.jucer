@@ -5,7 +5,8 @@
               version="0.0.1" companyWebsite="reillyspitzfaden.netlify.app"
               bundleIdentifier="com.reillyspitzfaden.RSBrokenMedia" pluginFormats="buildAU,buildVST3"
               pluginManufacturer="Reilly Spitzfaden " pluginManufacturerCode="Rspi"
-              pluginCode="Rsbm" aaxIdentifier="com.reillyspitzfaden.RSBrokenMedia">
+              pluginCode="Rsbm" aaxIdentifier="com.reillyspitzfaden.RSBrokenMedia"
+              cppLanguageStandard="17">
   <MAINGROUP id="e5JMVm" name="RSBrokenMedia">
     <GROUP id="{1C84336C-33B1-1D67-09AE-FC65F46837BE}" name="Source">
       <FILE id="DyzCCX" name="PluginProcessor.cpp" compile="1" resource="0"

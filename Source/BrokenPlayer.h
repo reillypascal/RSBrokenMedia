@@ -47,7 +47,7 @@ public:
     float wrap(float a, float b);
     
 private:
-    int mGranBufferLength = 22050;
+    int mGranBufferLength = 66150;
     CircularBuffer<float> mCircularBuffer { mGranBufferLength };
     
     std::vector<float> mReadPosition { 0, 0 };
@@ -56,14 +56,22 @@ private:
     OscillatorParameters lfoParameters;
     SignalGenData<float> lfoOutput;
     
-    Line<float> leftLine;
-    Line<float> rightLine;
-    float rampTime = 150;
+    std::vector<Line<float>> tapeSpeedLine { Line<float>(), Line<float>()};
+    std::vector<Line<float>> tapeStopLine { Line<float>(), Line<float>()};
+    //Line<float> leftLine;
+    //Line<float> rightLine;
+    //Line<float> leftTapeStop;
+    //Line<float> rightTapeStop;
+    float rampTime = 6615;
     
     std::vector<float> tapeBendVals { 0.5, 0.67, 1.0, 1.5, 2.0 };
     std::vector<float> tapeDirVals { -1, 1 };
-    float tapeRevProb = 0.33;
     int clockCounter = 0;
     int clockCycle = 33075;
+    
+    // parameters
     float clockPeriod = 675;
+    float tapeBendProb = 1;
+    float tapeRevProb = 0.33;
+    float tapeStopProb = 0.25;
 };

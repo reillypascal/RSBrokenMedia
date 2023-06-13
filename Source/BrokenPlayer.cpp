@@ -26,10 +26,19 @@ void BrokenPlayer::prepareToPlay(double sampleRate, int samplesPerBlock)
     std::fill(mReadPosition.begin(), mReadPosition.end(), 0);
     std::fill(mPlaybackRate.begin(), mPlaybackRate.end(), 1.0);
     
-    leftLine.setParameters(rampTime);
-    rightLine.setParameters(rampTime);
-    leftLine.reset(getSampleRate());
-    rightLine.reset(getSampleRate());
+    for (int line = 0; line < tapeSpeedLine.size(); ++line)
+    {
+        tapeSpeedLine.at(line).setParameters(rampTime);
+        tapeSpeedLine.at(line).reset(getSampleRate());
+    }
+    
+    for (int line = 0; line < tapeStopLine.size(); ++line)
+    {
+        tapeStopLine.at(line).setParameters(rampTime);
+        tapeStopLine.at(line).reset(getSampleRate());
+    }
+    
+    srand(static_cast<uint32_t>(time(NULL)));
 }
 
 void BrokenPlayer::releaseResources() {}
@@ -56,16 +65,30 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
     {
         if (clockCounter == 0)
         {
-            // adjust random weighting
-            float leftDest = tapeBendVals.at(rand() % tapeBendVals.size());
-            if (rand() % 1 < tapeRevProb)
-                leftDest *= -1;
-            float rightDest = tapeBendVals.at(rand() % tapeBendVals.size());
-            if (rand() % 1 < tapeRevProb)
-                rightDest *= -1;
+            // set new destinations for L/R tape speeds
+            std::for_each(tapeSpeedLine.begin(),
+                          tapeSpeedLine.end(),
+                          [this](Line<float>& line)
+                {
+                    float index = 2 + scale(randomFloat(), 0.0f, 1.0f, -2.0f * tapeBendProb, 2.0f * tapeBendProb);
+                    float dest = tapeBendVals.at(index);
+                    if (randomFloat() < tapeRevProb)
+                        dest *= -1;
+                    
+                    line.setDestination(dest);
+                });
             
-            leftLine.setDestination(leftDest);
-            rightLine.setDestination(rightDest);
+            // initialize L/R tape stops
+            std::for_each(tapeStopLine.begin(),
+                          tapeStopLine.end(),
+                          [this](Line<float>& line)
+                {
+                    if (randomFloat() < tapeStopProb)
+                    {
+                        line.setParameters(rampTime);
+                        line.setDestination(0);
+                    }
+                });
         }
         clockCounter++;
         clockCounter %= clockCycle;
@@ -74,10 +97,16 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
         {
             auto* channelData = buffer.getWritePointer (channel);
             
-            if (channel == 0)
-                mPlaybackRate.at(0) = leftLine.renderAudioOutput();
-            else if (channel == 1)
-                mPlaybackRate.at(1) = rightLine.renderAudioOutput();
+            // ramp back up if stop completed
+            float tapeStopSpeed = tapeStopLine.at(channel).renderAudioOutput();
+            if (tapeStopSpeed < 0.01)
+            {
+                tapeStopLine.at(channel).setParameters(133);
+                tapeStopLine.at(channel).setDestination(1.0f);
+            }
+            
+            mPlaybackRate.at(channel) = tapeSpeedLine.at(channel).renderAudioOutput();
+            mPlaybackRate.at(channel) *= tapeStopSpeed;
             
             channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
             
@@ -89,8 +118,11 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
 
 void BrokenPlayer::reset()
 {    
-    leftLine.reset(getSampleRate());
-    rightLine.reset(getSampleRate());
+    for (int line = 0; line < tapeSpeedLine.size(); ++line)
+    {
+        tapeSpeedLine.at(line).reset(getSampleRate());
+        tapeStopLine.at(line).reset(getSampleRate());
+    }
 }
 
 juce::AudioProcessorEditor* BrokenPlayer::createEditor() { return nullptr; }

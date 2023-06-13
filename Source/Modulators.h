@@ -127,10 +127,11 @@ public:
     virtual const SampleType renderAudioOutput();
         
 private:
-    SampleType sampleRate = 44100;
+    int sampleRate = 44100;
     
     SampleType phaseInc = 0.0;
-    SampleType rampTime = 150;
+    SampleType rampTimeSecs = 0.15;
+    SampleType rampTimeSamps = 6615;
     
     SampleType startingValue = 1.0;
     SampleType destinationValue = 1.0;
