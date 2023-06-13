@@ -110,7 +110,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 
                 //================ lofi FX ================
             }
-            if (channel == 0)
+            if (channel == buffer.getNumChannels() - 1)
             {
                 clockCounter++;
                 clockCounter %= clockCycle;
