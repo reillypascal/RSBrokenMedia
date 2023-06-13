@@ -2,9 +2,8 @@
   ==============================================================================
 
 TODO:
- - fix tape speeds acting like tape stops
- - add setters
-
+ - add digital
+ - add lofi
   ==============================================================================
 */
 
@@ -71,13 +70,18 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                           tapeSpeedLine.end(),
                           [this](Line<float>& line)
             {
-                float index = 2 + scale(randomFloat(), 0.0f, 1.0f, -2.0f * tapeBendProb, 2.0f * tapeBendProb);
-                float dest = tapeBendVals.at(index);
-                if (randomFloat() < tapeRevProb)
-                    dest *= -1;
-                
-                line.setDestination(dest);
+                if (randomFloat() < tapeBendProb)
+                {
+                    int index = rand() % tapeBendDepth;
+                    float dest = tapeBendVals.at(index);
+                    line.setDestination(dest);
+                }
             });
+            
+            if (randomFloat() < tapeRevProb)
+                tapeDirMultiplier = -1;
+            else
+                tapeDirMultiplier = 1;
             
             // initialize L/R tape stops
             std::for_each(tapeStopLine.begin(),
@@ -106,8 +110,8 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 tapeStopLine.at(channel).setDestination(1.0f);
             }
             
-            mPlaybackRate.at(channel) = tapeSpeedLine.at(channel).renderAudioOutput();
-            //mPlaybackRate.at(channel) *= tapeStopSpeed;
+            mPlaybackRate.at(channel) = tapeSpeedLine.at(channel).renderAudioOutput() * tapeDirMultiplier;
+            mPlaybackRate.at(channel) *= tapeStopSpeed;
             
             channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
             
@@ -143,8 +147,21 @@ void BrokenPlayer::changeProgramName(int, const juce::String&) {}
 void BrokenPlayer::getStateInformation(juce::MemoryBlock&) {}
 void BrokenPlayer::setStateInformation(const void*, int) {}
 
-float BrokenPlayer::wrap(float a, float b)
+void BrokenPlayer::setClockSpeed(float newClockSpeed) { clockPeriod = newClockSpeed; }
+void BrokenPlayer::setAnalogFX(float newAnalogFX)
 {
-    float mod = fmodf(a, b);
-    return (a >= 0 ? 0 : b) + (mod > __FLT_EPSILON__ || !isnan(mod) ? mod : 0);
+    tapeBendProb = newAnalogFX;
+    
+    if (newAnalogFX == 0)
+        tapeBendDepth = 0;
+    else if (newAnalogFX > 0 && newAnalogFX < 0.35)
+        tapeBendDepth = 2;
+    else
+        tapeBendDepth = 4;
+    
+    tapeRevProb = std::clamp<float>(newAnalogFX * 1.5, 0.0, 1.0, [](const float& a, const float& b) { return a < b; });
+    
+    tapeStopProb = 0.4 * pow(newAnalogFX, 1.5);
 }
+void BrokenPlayer::setDigitalFX(float newDigitalFX) {}
+void BrokenPlayer::setLofiFX(float newLofiFX) {}

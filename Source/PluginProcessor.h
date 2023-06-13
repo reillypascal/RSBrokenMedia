@@ -59,6 +59,13 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+    juce::AudioProcessorValueTreeState parameters;
+    
+    std::atomic<float>* clockSpeedParameter = nullptr;
+    std::atomic<float>* analogFXParameter = nullptr;
+    std::atomic<float>* digitalFXParameter = nullptr;
+    std::atomic<float>* lofiFXParameter = nullptr;
+    
     BrokenPlayer brokenPlayer;
     
     //==============================================================================

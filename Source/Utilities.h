@@ -44,3 +44,9 @@ inline float scale(float input, float inLow, float inHi, float outLow, float out
     float offset = outLow - inLow;
     return (input * scaleFactor) + offset;
 }
+
+inline float wrap(float a, float b)
+{
+    float mod = fmodf(a, b);
+    return (a >= 0 ? 0 : b) + (mod > __FLT_EPSILON__ || !isnan(mod) ? mod : 0);
+}

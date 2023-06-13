@@ -44,7 +44,10 @@ public:
     void setStateInformation(const void*, int) override;
     
     //==============================================================================
-    float wrap(float a, float b);
+    void setClockSpeed(float newClockSpeed);
+    void setAnalogFX(float newAnalogFX);
+    void setDigitalFX(float newDigitalFX);
+    void setLofiFX(float newLofiFX);
     
 private:
     int mGranBufferLength = 66150;
@@ -58,20 +61,17 @@ private:
     
     std::vector<Line<float>> tapeSpeedLine { Line<float>(), Line<float>()};
     std::vector<Line<float>> tapeStopLine { Line<float>(), Line<float>()};
-    //Line<float> leftLine;
-    //Line<float> rightLine;
-    //Line<float> leftTapeStop;
-    //Line<float> rightTapeStop;
     float rampTime = 6615;
     
-    std::vector<float> tapeBendVals { 0.5, 0.67, 1.0, 1.5, 2.0 };
-    std::vector<float> tapeDirVals { -1, 1 };
+    std::vector<float> tapeBendVals { 1.0, 0.67, 1.5, 0.5, 2.0 };
+    float tapeDirMultiplier = 1;
     int clockCounter = 0;
     int clockCycle = 33075;
     
     // parameters
     float clockPeriod = 675;
     float tapeBendProb = 1;
+    int tapeBendDepth = 2;
     float tapeRevProb = 0.33;
     float tapeStopProb = 0.25;
 };

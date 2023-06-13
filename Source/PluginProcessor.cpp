@@ -19,9 +19,35 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ),
 #endif
+    parameters(*this, nullptr, juce::Identifier("RSBrokenMedia"), {
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "clockSpeed", 1 },
+                                                    "Clock Speed",
+                                                    80.0f,
+                                                    2000.0f,
+                                                    675.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "analogFX", 1 },
+                                                    "Analog FX",
+                                                    0.0f,
+                                                    1.0f,
+                                                    0.35f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "digitalFX", 1 },
+                                                    "Digital FX",
+                                                    0.0f,
+                                                    1.0f,
+                                                    0.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "lofiFX", 1 },
+                                                    "Lo-Fi FX",
+                                                    0.0f,
+                                                    1.0f,
+                                                    0.0f)
+})
 {
+    clockSpeedParameter = parameters.getRawParameterValue("clockSpeed");
+    analogFXParameter = parameters.getRawParameterValue("analogFX");
+    digitalFXParameter = parameters.getRawParameterValue("digitalFX");
+    lofiFXParameter = parameters.getRawParameterValue("lofiFX");
 }
 
 RSBrokenMediaAudioProcessor::~RSBrokenMediaAudioProcessor()
@@ -142,6 +168,16 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+    
+    float clockSpeed = static_cast<float>(*clockSpeedParameter);
+    float analogFX = static_cast<float>(*analogFXParameter);
+    float digitalFX = static_cast<float>(*digitalFXParameter);
+    float lofiFX = static_cast<float>(*lofiFXParameter);
+    
+    brokenPlayer.setClockSpeed(clockSpeed);
+    brokenPlayer.setAnalogFX(analogFX);
+    brokenPlayer.setDigitalFX(digitalFX);
+    brokenPlayer.setLofiFX(lofiFX);
 
     brokenPlayer.processBlock(buffer, midiMessages);
     
@@ -155,21 +191,24 @@ bool RSBrokenMediaAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* RSBrokenMediaAudioProcessor::createEditor()
 {
-    return new RSBrokenMediaAudioProcessorEditor (*this);
+    return new RSBrokenMediaAudioProcessorEditor (*this, parameters);
 }
 
 //==============================================================================
 void RSBrokenMediaAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    auto state = parameters.copyState();
+    std::unique_ptr<juce::XmlElement> xml (state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
 void RSBrokenMediaAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary(data, sizeInBytes));
+    
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(parameters.state.getType()))
+            parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 //==============================================================================
