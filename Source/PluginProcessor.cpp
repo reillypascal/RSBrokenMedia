@@ -36,17 +36,17 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     "Digital FX",
                                                     0.0f,
                                                     1.0f,
-                                                    0.0f),
+                                                    0.35f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "lofiFX", 1 },
                                                     "Lo-Fi FX",
                                                     0.0f,
                                                     1.0f,
-                                                    0.0f),
+                                                    0.35f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "dryWetMix", 1 },
                                                     "Dry/Wet Mix",
                                                     0.0f,
                                                     1.0f,
-                                                    0.45f)
+                                                    0.4f)
 })
 {
     clockSpeedParameter = parameters.getRawParameterValue("clockSpeed");

@@ -29,7 +29,7 @@ public:
         if (counter == 0)
         {
             for (int i = 0; i < 2; ++i)
-                loopValues.push_back((rand() % 127) * (bufferLength / 128));
+                loopValues.at(i) = (rand() % 128) * (bufferLength / 128);
             
             std::for_each(loopValues.begin(),
                           loopValues.end(),
