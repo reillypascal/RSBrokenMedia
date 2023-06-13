@@ -61,16 +61,12 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
     
     clockCycle = static_cast<int>(clockPeriod * 44.1);
     
+    //================ channel/sample loops ================
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
         
         mCircularBuffer.fillNextBlock(channel, buffer.getNumSamples(), channelData);
-    }
-    //================ channel/sample loops ================
-    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
         
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
