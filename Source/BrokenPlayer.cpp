@@ -2,7 +2,6 @@
   ==============================================================================
 
 TODO:
- - add digital
  - add lofi
   ==============================================================================
 */
@@ -115,7 +114,6 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 clockCounter++;
                 clockCounter %= clockCycle;
             }
-            
             
             //================ tape speed adjustments ================
             // ramp back up if stop completed

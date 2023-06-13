@@ -11,6 +11,7 @@
 #include <JuceHeader.h>
 #include "BrokenPlayer.h"
 #include "CircularBuffer.h"
+#include "LofiProcessors.h"
 
 //==============================================================================
 /**
