@@ -19,6 +19,7 @@ void BrokenPlayer::prepareToPlay(double sampleRate, int samplesPerBlock)
     spec.numChannels = getTotalNumInputChannels();
     
     mCircularBuffer.prepare(spec);
+    bitcrusher.prepare(spec);
     
     mReadPosition.resize(getTotalNumInputChannels());
     mPlaybackRate.resize(getTotalNumInputChannels());
@@ -108,6 +109,16 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                               [this](float& prob){ prob = randomFloat(); });
                 
                 //================ lofi FX ================
+                // bitcrusher
+                useBitcrusher = (randomFloat() < std::clamp<float>(bitcrusherProb * 3, 0.0, 1.0, [](const float& a, const float& b) { return a < b; }));
+                
+                float scaledProb = powf(bitcrusherProb, 3.0f);
+                
+                bitcrusher.setBitDepth(floor( scale(scaledProb * -1 + 1, 0.0f, 1.0f, 5.0f, 12.0f) + 0.5) + (randomFloat() * 3) );
+                
+                bitcrusher.setDownsampling(static_cast<int>( scale(scaledProb, 0.0f, 1.0f, 2.0f, 15.0f) + (randomFloat() * (1 + (scaledProb * 16)))  ));
+                
+                //
             }
             if (channel == buffer.getNumChannels() - 1)
             {
@@ -187,7 +198,13 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 mReadPosition.at(channel) += mPlaybackRate.at(channel);
                 mReadPosition.at(channel) = wrap(mReadPosition.at(channel), static_cast<float>(mBentBufferLength));
             }
-        }
+        } // sample loop
+    } // channel loop
+    
+    if (useBitcrusher)
+    {
+        juce::dsp::AudioBlock<float> block { buffer };
+        bitcrusher.process(juce::dsp::ProcessContextReplacing<float>(block));
     }
 }
 
@@ -232,13 +249,20 @@ void BrokenPlayer::setAnalogFX(float newAnalogFX)
     else
         tapeBendDepth = 4;
     
-    tapeRevProb = std::clamp<float>(newAnalogFX * 1.5, 0.0, 0.8, [](const float& a, const float& b) { return a < b; });
+    tapeRevProb = std::clamp<float>(newAnalogFX * 1.5, 0.0, 0.8, std::less<float>());
     
-    tapeStopProb = 0.4 * pow(newAnalogFX, 1.5);
+    tapeStopProb = 0.4 * powf(newAnalogFX, 1.5);
 }
 void BrokenPlayer::setDigitalFX(float newDigitalFX)
 {
-    cdSkipProb = newDigitalFX * 0.65;
+    float cdSkipFoldover = 0.4;
+    float cdSkipScale = 0.75;
+    
+    if (newDigitalFX < cdSkipFoldover)
+        cdSkipProb = newDigitalFX * cdSkipScale;
+    else
+        cdSkipProb = std::clamp<float>((cdSkipFoldover * cdSkipScale) - ((newDigitalFX - cdSkipFoldover) * cdSkipScale), 0.0f, 1.0f, std::less<float>());
+    
     randomLoopProb = newDigitalFX;
 }
-void BrokenPlayer::setLofiFX(float newLofiFX) {}
+void BrokenPlayer::setLofiFX(float newLofiFX) { bitcrusherProb = newLofiFX; }

@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "CircularBuffer.h"
+#include "LofiProcessors.h"
 #include "Modulators.h"
 #include "Utilities.h"
 
@@ -29,7 +30,7 @@ public:
         if (counter == 0)
         {
             for (int i = 0; i < 2; ++i)
-                loopValues.at(i) = (rand() % 128) * (bufferLength / 128);
+                loopValues.at(i) = (randomFloat() * bufferLength);
             
             std::for_each(loopValues.begin(),
                           loopValues.end(),
@@ -169,7 +170,7 @@ private:
     // digital FX
     
     std::vector<RandomLoop> randomLooper { RandomLoop(mBentBufferLength, 3969), RandomLoop(mBentBufferLength, 5292) };
-    std::vector<CDSkip> cdSkipper { CDSkip(mBentBufferLength, 8), CDSkip(mBentBufferLength, 8) };
+    std::vector<CDSkip> cdSkipper { CDSkip(mBentBufferLength, 4), CDSkip(mBentBufferLength, 4) };
     std::vector<float> skipProb = { 0, 0 };
     std::vector<int> cdSkipPlayCounter = { 0, 0 };
     std::vector<int> cdSkipPlayLength = { 4410, 4410 };
@@ -186,4 +187,10 @@ private:
     
     float cdSkipProb = 0.15;
     float randomLoopProb = 0.35;
+    
+    float bitcrusherProb = 0;
+    
+    // lofi processors
+    Bitcrusher bitcrusher;
+    bool useBitcrusher = false;
 };
