@@ -30,17 +30,9 @@ public:
         if (counter == 0)
         {
             for (int i = 0; i < 2; ++i)
-                loopValues.at(i) = (randomFloat() * bufferLength);
+                loopValues.at(i) = (randomFloat() * 64) * ((bufferLength - 1) / 64);
             
-            std::for_each(loopValues.begin(),
-                          loopValues.end(),
-                          [this](int& value) { value %= bufferLength; });
-            
-            std::sort(loopValues.begin(), loopValues.end());
-            
-            int loopLength = loopValues.at(1) - loopValues.at(0);
-            
-            loopValues.at(1) = loopLength > 64 ? loopLength : 64;
+            std::sort(loopValues.begin(), loopValues.end(), std::less<int>());
         }
         
         ++counter;
@@ -169,7 +161,7 @@ private:
     
     // digital FX
     
-    std::vector<RandomLoop> randomLooper { RandomLoop(mBentBufferLength, 3969), RandomLoop(mBentBufferLength, 5292) };
+    std::vector<RandomLoop> randomLooper { RandomLoop(mBentBufferLength, 3308), RandomLoop(mBentBufferLength, 4410) };
     std::vector<CDSkip> cdSkipper { CDSkip(mBentBufferLength, 4), CDSkip(mBentBufferLength, 4) };
     std::vector<float> skipProb = { 0, 0 };
     std::vector<int> cdSkipPlayCounter = { 0, 0 };

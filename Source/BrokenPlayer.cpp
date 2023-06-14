@@ -103,7 +103,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                     }
                 });
                 
-                //================ skip probs ================
+                //================ skip/loop probs ================
                 std::for_each(skipProb.begin(),
                               skipProb.end(),
                               [this](float& prob){ prob = randomFloat(); });
@@ -165,30 +165,17 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 cdSkipPlayCounter.at(channel) %= cdSkipPlayLength.at(channel);
             }
             //================ loops ================
-            else if (skipProb.at(channel) < randomLoopProb)
+            else if (skipProb.at(channel) < randomLoopProb && skipProb.at(channel) >= cdSkipProb)
             {
                 std::vector<int> randomLoop = randomLooper.at(channel).advanceCtrAndReturn();
-                
-                if (randomLooperPlayCounter.at(channel) == 0)
-                    mReadPosition.at(channel) = randomLoop.at(0);
-                
-                if (randomLoop != prevRandomLoop)
-                {
-                    prevRandomLoop = randomLoop;
-                    
-                    mReadPosition.at(channel) = randomLoop.at(0);
-                    randomLooperPlayLength.at(channel) = randomLoop.at(1);
-                    randomLooperPlayCounter.at(channel) = 0;
-                }
                 
                 channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
                 
                 // increment/wrap read position
                 mReadPosition.at(channel) += mPlaybackRate.at(channel);
                 mReadPosition.at(channel) = wrap(mReadPosition.at(channel), static_cast<float>(mBentBufferLength));
-                // increment wrap timing counter
-                ++randomLooperPlayCounter.at(channel);
-                randomLooperPlayCounter.at(channel) %= randomLooperPlayLength.at(channel);
+                if (mReadPosition.at(channel) > randomLoop.at(1))
+                    mReadPosition.at(channel) = randomLoop.at(0);
             }
             //================ tape FX only ================
             else
