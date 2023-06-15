@@ -72,6 +72,10 @@ private:
     BrokenPlayer brokenPlayer;
     juce::dsp::DryWetMixer<float> dryWetMixer;
     
+    MuLaw muLaw;
+    
+    DownsampleAndFilter downsampleAndFilter;
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RSBrokenMediaAudioProcessor)
 };

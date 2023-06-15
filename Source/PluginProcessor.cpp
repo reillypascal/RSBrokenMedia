@@ -140,6 +140,9 @@ void RSBrokenMediaAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     spec.numChannels = getTotalNumInputChannels();
     
     dryWetMixer.prepare(spec);
+    
+    muLaw.prepare(spec);
+    downsampleAndFilter.prepare(spec);
 }
 
 void RSBrokenMediaAudioProcessor::releaseResources()
@@ -199,6 +202,13 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     brokenPlayer.setLofiFX(lofiFX);
 
     brokenPlayer.processBlock(buffer, midiMessages);
+    
+    juce::dsp::AudioBlock<float> block { buffer };
+    // lo-fi global processing
+    muLaw.process(juce::dsp::ProcessContextReplacing<float>(block));
+    
+    //downsampleAndFilter.setDownsampling(4);
+    //downsampleAndFilter.process(juce::dsp::ProcessContextReplacing<float>(block));
     
     dryWetMixer.mixWetSamples(juce::dsp::AudioBlock<float> {buffer});
 }
