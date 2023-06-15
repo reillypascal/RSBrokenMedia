@@ -74,7 +74,8 @@ RSBrokenMediaAudioProcessorEditor::~RSBrokenMediaAudioProcessorEditor()
 //==============================================================================
 void RSBrokenMediaAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colour::fromRGB(12, 16, 20)); //was 0x221144
+    g.fillAll (juce::Colour::fromRGB(18, 18, 18)); //was 0x221144, then 12, 16, 20, then 21, 32, 43
+    //g.fillAll (juce::Colours::darkslategrey);
 
     g.setColour (juce::Colours::aliceblue);
     g.setFont (32.0f);

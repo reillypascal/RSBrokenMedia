@@ -142,12 +142,15 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
             //================ skips ================
             if (skipProb.at(channel) < cdSkipProb)
             {
+                std::vector<int> skipLoop;
+                
                 // read (and start next slice if necessary) before incrementing and wrapping
                 if (cdSkipPlayCounter.at(channel) == 0)
                 {
-                    std::vector<int> skipLoop = cdSkipper.at(channel).advanceCtrAndReturn();
+                    skipLoop = cdSkipper.at(channel).advanceCtrAndReturn();
                     
                     mReadPosition.at(channel) = skipLoop.at(0);
+                    mChirpReadPosition.at(channel) = skipLoop.at(0);
                     cdSkipPlayLength.at(channel) = skipLoop.at(1);
                     
                     channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
@@ -155,6 +158,15 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 else
                 {
                     channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
+                }
+                
+                // chirp
+                if (cdSkipPlayCounter.at(channel) < 50)
+                {
+                    channelData[sample] += mCircularBuffer.readSample(channel, mChirpReadPosition.at(channel));
+                    
+                    mChirpReadPosition.at(channel) += 6;
+                    mChirpReadPosition.at(channel) = wrap(mChirpReadPosition.at(channel), static_cast<float>(mBentBufferLength));
                 }
                 
                 // increment/wrap read position
@@ -174,7 +186,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 // increment/wrap read position
                 mReadPosition.at(channel) += mPlaybackRate.at(channel);
                 mReadPosition.at(channel) = wrap(mReadPosition.at(channel), static_cast<float>(mBentBufferLength));
-                if (mReadPosition.at(channel) > randomLoop.at(1))
+                if (mReadPosition.at(channel) > randomLoop.at(1) )//|| mReadPosition.at(channel) < randomLoop.at(0))
                     mReadPosition.at(channel) = randomLoop.at(0);
             }
             //================ tape FX only ================

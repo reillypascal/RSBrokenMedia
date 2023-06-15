@@ -69,7 +69,7 @@ public:
     }
     
     //==============================================================================
-    SampleType readSample(int channel, SampleType readPosition)
+    const SampleType readSample(int channel, SampleType readPosition)
     {
         // look at DelayLine implementation
         readPosFrac = readPosition - floor(readPosition);
@@ -92,7 +92,7 @@ public:
     }
     
     //==============================================================================
-    int getBufferSize()
+    const int getBufferSize()
     {
         return mCircularBuffer.getNumSamples();
     }

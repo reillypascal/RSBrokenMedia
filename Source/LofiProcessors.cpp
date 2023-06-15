@@ -130,7 +130,6 @@ inline unsigned char MuLaw::Lin2MuLaw(int16_t pcm_val)
     uint8_t uval;
     
     pcm_val = pcm_val >> 2;
-    
     if (pcm_val < 0)
     {
         pcm_val = -pcm_val;

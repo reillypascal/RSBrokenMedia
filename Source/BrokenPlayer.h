@@ -8,6 +8,7 @@
 
 #pragma once
 
+//#include <random>
 #include <JuceHeader.h>
 #include "CircularBuffer.h"
 #include "LofiProcessors.h"
@@ -32,6 +33,21 @@ public:
             for (int i = 0; i < 2; ++i)
                 loopValues.at(i) = (randomFloat() * 64) * ((bufferLength - 1) / 64);
             
+            // normal distribution to 2 std dev - was supposed to make more
+            // values close together but actually seemed to make glitches sparser
+            /*
+            std::random_device rd {};
+            std::mt19937 gen { rd() }; // mersenne "twister" random generator
+            
+            for (int i = 0; i < 2; ++i)
+            {
+                std::normal_distribution<float> dist { static_cast<float>((bufferLength - 1) / 2), static_cast<float>((bufferLength - 1) / 4) };
+                
+                int randomVal = static_cast<int>(std::round(dist(gen)));
+                
+                loopValues.at(i) = std::clamp<int>(randomVal, 0, (bufferLength - 1), std::less<int>());
+            }
+            */
             std::sort(loopValues.begin(), loopValues.end(), std::less<int>());
         }
         
@@ -101,7 +117,23 @@ private:
     int counter = 0;
     
 };
-
+/*
+inline float playChirpIfCounterInRange(CircularBuffer<float>& circularBuffer, const int& channel, const int& startSample, const int& counter, const int& length)
+{
+    if (counter < length)
+    {
+        float playbackRate = 6;
+        float readPosition = (playbackRate * static_cast<float>(counter)) + static_cast<float>(startSample);
+        readPosition = wrap(readPosition, circularBuffer.getBufferSize());
+        
+        float value = circularBuffer.readSample(channel, readPosition);
+        
+        return value;
+    }
+    else
+        return 0.0f;
+}
+*/
 //==============================================================================
 class BrokenPlayer : public juce::AudioProcessor
 {
@@ -144,7 +176,8 @@ private:
     CircularBuffer<float> mCircularBuffer { mBentBufferLength };
     
     std::vector<float> mReadPosition { 0, 0 };
-    std::vector<float> mPlaybackRate = { 1.0, 1.0 };
+    std::vector<float> mPlaybackRate { 1.0, 1.0 };
+    std::vector<float> mChirpReadPosition { 0.0, 0.0 };
     
     OscillatorParameters lfoParameters;
     SignalGenData<float> lfoOutput;
