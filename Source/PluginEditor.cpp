@@ -103,7 +103,7 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     
     getLookAndFeel().setDefaultLookAndFeel(&grayBlueLookAndFeel);
         
-    setSize (750, 575);
+    setSize (755, 575);
 }
 
 RSBrokenMediaAudioProcessorEditor::~RSBrokenMediaAudioProcessorEditor()
@@ -128,16 +128,16 @@ void RSBrokenMediaAudioProcessorEditor::paint (juce::Graphics& g)
     // panels
     // tried 93,107,128 (outlive max patch)
     g.setColour(juce::Colour::fromRGB(68, 81, 96));
-    g.fillRoundedRectangle(25, 65, getWidth() - 50, 235, 25);
-    g.fillRoundedRectangle(25, 325, getWidth() - 50, 185, 25);
+    g.fillRoundedRectangle(25, 65, getWidth() - 50, 237, 25);
+    g.fillRoundedRectangle(25, 327, getWidth() - 50, 183, 25);
 }
 
 void RSBrokenMediaAudioProcessorEditor::resized()
 {
     const int xBorder = 30;
-    const int yBorderTop = 80;
-    const int yBorderBottom = 30;
-    const int rowSpacer = 75;
+    const int yBorderTop = 85;
+    const int yBorderBottom = 35;
+    const int rowSpacer = 87;
     const int bottomMenuSpacer = 20;
     
     //const int menuWidth = 200;
