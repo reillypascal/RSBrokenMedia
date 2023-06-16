@@ -57,6 +57,12 @@ public:
         return loopValues;
     }
     
+    void setBufferLength(int newBufferLen)
+    {
+        bufferLength = std::clamp<int>(newBufferLen, 0, 352800, std::less<int>());
+        counter = 0;
+    }
+    
 private:
     std::vector<int> loopValues { 0, 4410 };
     int bufferLength = 44100;
@@ -107,6 +113,12 @@ public:
         return loopValues;
     }
     
+    void setBufferLength(int newBufferLen)
+    {
+        bufferLength = std::clamp<int>(newBufferLen, 0, 352800, std::less<int>());
+        counter = 0;
+    }
+    
 private:
     std::vector<int> loopValues { 0, 4410 };
     int bufferLength = 44100;
@@ -117,23 +129,8 @@ private:
     int counter = 0;
     
 };
-/*
-inline float playChirpIfCounterInRange(CircularBuffer<float>& circularBuffer, const int& channel, const int& startSample, const int& counter, const int& length)
-{
-    if (counter < length)
-    {
-        float playbackRate = 6;
-        float readPosition = (playbackRate * static_cast<float>(counter)) + static_cast<float>(startSample);
-        readPosition = wrap(readPosition, circularBuffer.getBufferSize());
-        
-        float value = circularBuffer.readSample(channel, readPosition);
-        
-        return value;
-    }
-    else
-        return 0.0f;
-}
-*/
+
+
 //==============================================================================
 class BrokenPlayer : public juce::AudioProcessor
 {
@@ -166,14 +163,16 @@ public:
     void setStateInformation(const void*, int) override;
     
     //==============================================================================
-    void setClockSpeed(float newClockSpeed);
     void setAnalogFX(float newAnalogFX);
     void setDigitalFX(float newDigitalFX);
     void setLofiFX(float newLofiFX);
+    void setBufferLength(float newBufferLength);
+    void newNumRepeats(float newRepeatCount);
+    void setClockSpeed(float newClockSpeed);
     
 private:
-    int mBentBufferLength = 66150;
-    CircularBuffer<float> mCircularBuffer { mBentBufferLength };
+    int mBentBufferLength = 66150; // length of full 8s buffer to use
+    CircularBuffer<float> mCircularBuffer { 353312 }; // 8 seconds + 512 samples for safety
     
     std::vector<float> mReadPosition { 0, 0 };
     std::vector<float> mPlaybackRate { 1.0, 1.0 };
@@ -193,7 +192,6 @@ private:
     int clockCycle = 33075;
     
     // digital FX
-    
     std::vector<RandomLoop> randomLooper { RandomLoop(mBentBufferLength, 3308), RandomLoop(mBentBufferLength, 4410) };
     std::vector<CDSkip> cdSkipper { CDSkip(mBentBufferLength, 4), CDSkip(mBentBufferLength, 4) };
     std::vector<float> skipProb = { 0, 0 };

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "Modulators.h"
 
 class Bitcrusher : public juce::dsp::ProcessorBase
 {
@@ -77,6 +78,8 @@ private:
     int sampleRate = 44100;
     int downsampling = 2;
     float cutoff = 4410;
+    
+    std::vector<Line<float>> resamplingRamps { Line<float>(), Line<float>() };
     
     juce::dsp::IIR::Filter<float> preFilter1;
     juce::dsp::IIR::Filter<float> preFilter2;

@@ -22,11 +22,6 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                        ),
 #endif
     parameters(*this, nullptr, juce::Identifier("RSBrokenMedia"), {
-        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "clockSpeed", 1 },
-                                                    "Clock Speed",
-                                                    80.0f,
-                                                    2000.0f,
-                                                    675.0f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "analogFX", 1 },
                                                     "Analog FX",
                                                     0.0f,
@@ -38,23 +33,53 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     1.0f,
                                                     0.35f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "lofiFX", 1 },
-                                                    "Lo-Fi FX",
+                                                    "Distortion FX",
                                                     0.0f,
                                                     1.0f,
                                                     0.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "clockSpeed", 1 },
+                                                    "Clock Speed",
+                                                    80.0f,
+                                                    2000.0f,
+                                                    675.0f),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "bufferLength", 1 },
+                                                    "Buffer Length",
+                                                    juce::NormalisableRange<float>(15,
+                                                                                   8000,
+                                                                                   5),
+                                                    1500),
+        std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "repeats", 1 },
+                                                    "Repeats",
+                                                    juce::NormalisableRange<float>(1,
+                                                                                   64,
+                                                                                   1),
+                                                    8),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "dryWetMix", 1 },
                                                     "Dry/Wet Mix",
                                                     0.0f,
                                                     1.0f,
-                                                    0.4f)
+                                                    0.4f),
+        std::make_unique<juce::AudioParameterChoice>(juce::ParameterID { "codec", 1 },
+                                                    "Codec Menu",
+                                                     juce::StringArray { "None", "MuLaw", "GSM" },
+                                                    0),
+        std::make_unique<juce::AudioParameterChoice>(juce::ParameterID { "downsampling", 1 },
+                                                    "Downsampling Menu",
+                                                     juce::StringArray { "None", "x2", "x4", "x8", "x16" },
+                                                    0)
 })
 {
-    clockSpeedParameter = parameters.getRawParameterValue("clockSpeed");
     analogFXParameter = parameters.getRawParameterValue("analogFX");
     digitalFXParameter = parameters.getRawParameterValue("digitalFX");
     lofiFXParameter = parameters.getRawParameterValue("lofiFX");
     
+    clockSpeedParameter = parameters.getRawParameterValue("clockSpeed");
+    bufferLengthParameter = parameters.getRawParameterValue("bufferLength");
+    repeatsParameter = parameters.getRawParameterValue("repeats");
     dryWetMixParameter = parameters.getRawParameterValue("dryWetMix");
+    
+    codecMenuParameter = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("codec"));
+    downsamplingMenuParameter = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("downsampling"));
 }
 
 RSBrokenMediaAudioProcessor::~RSBrokenMediaAudioProcessor()
@@ -179,6 +204,7 @@ bool RSBrokenMediaAudioProcessor::isBusesLayoutSupported (const BusesLayout& lay
 
 void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+    //======== buffer safety ========
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -186,30 +212,58 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
-    float clockSpeed = static_cast<float>(*clockSpeedParameter);
+    //======== get parameters ========
     float analogFX = static_cast<float>(*analogFXParameter);
     float digitalFX = static_cast<float>(*digitalFXParameter);
     float lofiFX = static_cast<float>(*lofiFXParameter);
     
+    float clockSpeed = static_cast<float>(*clockSpeedParameter);
+    int bufferLength = static_cast<int>(*bufferLengthParameter * 44.1f);
+    //int numRepeats = static_cast<int>(*repeatsParameter);
     float dryWetMix = static_cast<float>(*dryWetMixParameter);
     
+    int downsampling = static_cast<int>(*downsamplingMenuParameter);
+    int codec = static_cast<int>(*codecMenuParameter);
+    
+    // ======== mix in dry ========
     dryWetMixer.setWetMixProportion(dryWetMix);
     dryWetMixer.pushDrySamples(juce::dsp::AudioBlock<float> {buffer});
     
-    brokenPlayer.setClockSpeed(clockSpeed);
+    //======== constant downsampling ========
+    juce::dsp::AudioBlock<float> preBrokenBlock { buffer };
+    if (downsampling != 0)
+    {
+        if (downsampling == 1)
+            downsampleAndFilter.setDownsampling(2);
+        else if (downsampling == 2)
+            downsampleAndFilter.setDownsampling(4);
+        else if (downsampling == 3)
+            downsampleAndFilter.setDownsampling(8);
+        else if (downsampling == 4)
+            downsampleAndFilter.setDownsampling(16);
+        downsampleAndFilter.process(juce::dsp::ProcessContextReplacing<float>(preBrokenBlock));
+    }
+    
+    //======== broken player ========
     brokenPlayer.setAnalogFX(analogFX);
     brokenPlayer.setDigitalFX(digitalFX);
     brokenPlayer.setLofiFX(lofiFX);
-
+    
+    brokenPlayer.setClockSpeed(clockSpeed);
+    brokenPlayer.setBufferLength(bufferLength);
+    
     brokenPlayer.processBlock(buffer, midiMessages);
     
-    juce::dsp::AudioBlock<float> block { buffer };
-    // lo-fi global processing
-    muLaw.process(juce::dsp::ProcessContextReplacing<float>(block));
+    //======== constant codec processing ========
+    juce::dsp::AudioBlock<float> postBrokenBlock { buffer };
+    if (codec == 1) // if menu doesn't include GSM, need 2 to work
+        muLaw.process(juce::dsp::ProcessContextReplacing<float>(postBrokenBlock));
+    else if (codec == 2)
+    {
+        // gsm processing
+    }
     
-    //downsampleAndFilter.setDownsampling(4);
-    //downsampleAndFilter.process(juce::dsp::ProcessContextReplacing<float>(block));
-    
+    //======== mix in wet ========
     dryWetMixer.mixWetSamples(juce::dsp::AudioBlock<float> {buffer});
 }
 

@@ -186,6 +186,14 @@ void DownsampleAndFilter::prepare(const juce::dsp::ProcessSpec& spec)
     postFilter3.prepare(spec);
     postFilter4.prepare(spec);
     
+    std::for_each(resamplingRamps.begin(),
+                  resamplingRamps.end(),
+                  [this](Line<float>& line)
+    {
+        line.reset(sampleRate);
+        line.setParameters(downsampling);
+    });
+    
     reset();
 }
 
@@ -208,6 +216,7 @@ void DownsampleAndFilter::process(const juce::dsp::ProcessContextReplacing<float
         
         for (size_t sample = 0; sample < numSamples; ++sample)
         {
+            /*
             // pre-downsampling filters
             preFilter1.processSample(src[sample]);
             preFilter1.snapToZero();
@@ -217,12 +226,16 @@ void DownsampleAndFilter::process(const juce::dsp::ProcessContextReplacing<float
             preFilter3.snapToZero();
             preFilter4.processSample(src[sample]);
             preFilter4.snapToZero();
+             */
             
             if (downsampling > 1)
             {
-                if (sample % downsampling != 0) dst[sample] = src[sample - (sample % downsampling)];
+                //if (sample % downsampling != 0) dst[sample] = src[sample - (sample % downsampling)];
+                resamplingRamps.at(channel).setDestination(src[sample]);
+                dst[sample] = resamplingRamps.at(channel).renderAudioOutput();
             }
             
+            /*
             // post-downsampling images filters
             postFilter1.processSample(dst[sample]);
             postFilter1.snapToZero();
@@ -232,6 +245,7 @@ void DownsampleAndFilter::process(const juce::dsp::ProcessContextReplacing<float
             postFilter3.snapToZero();
             postFilter4.processSample(dst[sample]);
             postFilter4.snapToZero();
+             */
         }
     }
 }
@@ -263,14 +277,18 @@ void DownsampleAndFilter::reset()
 
 void DownsampleAndFilter::setDownsampling(int newDownsampling)
 {
-    if (newDownsampling == 0)
+    if (newDownsampling <= 0)
         downsampling = 1;
-    else if ( ceil(log2(newDownsampling)) == floor(log2(newDownsampling)) ) // is pwr of 2
+    else if ( ceil(log2(newDownsampling)) == floor(log2(newDownsampling)) ) // x is pwr of 2 when log2(x) == int
         downsampling = newDownsampling;
     else
         downsampling = 1;
     
-    cutoff = newDownsampling * 0.1;
+    cutoff = (sampleRate / downsampling) * 0.4;
+    
+    std::for_each(resamplingRamps.begin(),
+                  resamplingRamps.end(),
+                  [this](Line<float>& line) { line.setParameters(downsampling); });
     
     reset();
 }

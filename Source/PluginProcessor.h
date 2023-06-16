@@ -62,12 +62,17 @@ public:
 private:
     juce::AudioProcessorValueTreeState parameters;
     
-    std::atomic<float>* clockSpeedParameter = nullptr;
     std::atomic<float>* analogFXParameter = nullptr;
     std::atomic<float>* digitalFXParameter = nullptr;
     std::atomic<float>* lofiFXParameter = nullptr;
     
+    std::atomic<float>* clockSpeedParameter = nullptr;
+    std::atomic<float>* bufferLengthParameter = nullptr;
+    std::atomic<float>* repeatsParameter = nullptr;
     std::atomic<float>* dryWetMixParameter = nullptr;
+    
+    juce::AudioParameterChoice* codecMenuParameter = nullptr;
+    juce::AudioParameterChoice* downsamplingMenuParameter = nullptr;
     
     BrokenPlayer brokenPlayer;
     juce::dsp::DryWetMixer<float> dryWetMixer;

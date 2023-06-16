@@ -161,11 +161,11 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 }
                 
                 // chirp
-                if (cdSkipPlayCounter.at(channel) < 50)
+                if (cdSkipPlayCounter.at(channel) < 75)
                 {
                     channelData[sample] += mCircularBuffer.readSample(channel, mChirpReadPosition.at(channel));
                     
-                    mChirpReadPosition.at(channel) += 6;
+                    mChirpReadPosition.at(channel) += 7;
                     mChirpReadPosition.at(channel) = wrap(mChirpReadPosition.at(channel), static_cast<float>(mBentBufferLength));
                 }
                 
@@ -236,13 +236,17 @@ void BrokenPlayer::getStateInformation(juce::MemoryBlock&) {}
 void BrokenPlayer::setStateInformation(const void*, int) {}
 
 //==============================================================================
-void BrokenPlayer::setClockSpeed(float newClockSpeed) { clockPeriod = newClockSpeed; }
 void BrokenPlayer::setAnalogFX(float newAnalogFX)
 {
     tapeBendProb = newAnalogFX;
     
     if (newAnalogFX == 0)
+    {
         tapeBendDepth = 0;
+        std::for_each(tapeSpeedLine.begin(),
+                      tapeSpeedLine.end(),
+                      [this](Line<float>& line) { line.setDestination(1.0f); });
+    }
     else if (newAnalogFX > 0 && newAnalogFX < 0.35)
         tapeBendDepth = 2;
     else
@@ -254,14 +258,41 @@ void BrokenPlayer::setAnalogFX(float newAnalogFX)
 }
 void BrokenPlayer::setDigitalFX(float newDigitalFX)
 {
-    float cdSkipFoldover = 0.4;
+    /*
+    float cdSkipFoldover = 0.6;
     float cdSkipScale = 0.75;
     
     if (newDigitalFX < cdSkipFoldover)
         cdSkipProb = newDigitalFX * cdSkipScale;
     else
         cdSkipProb = std::clamp<float>((cdSkipFoldover * cdSkipScale) - ((newDigitalFX - cdSkipFoldover) * cdSkipScale), 0.0f, 1.0f, std::less<float>());
+    */
+    //cdSkipProb = std::clamp<float>(newDigitalFX * 0.8, 0.0f, 0.5f, std::less<float>());
+    if (newDigitalFX < 0.8)
+        cdSkipProb = powf(newDigitalFX, 2.0f) * 0.45;
+    else
+        cdSkipProb = 0;
     
-    randomLoopProb = newDigitalFX;
+    randomLoopProb = powf(newDigitalFX, 0.707f);
 }
 void BrokenPlayer::setLofiFX(float newLofiFX) { bitcrusherProb = newLofiFX; }
+void BrokenPlayer::setBufferLength(float newBufferLength)
+{
+    mBentBufferLength = std::clamp<int>(newBufferLength, 0, 352800, std::less<int>());
+    
+    std::for_each(randomLooper.begin(),
+                  randomLooper.end(),
+                  [&newBufferLength](RandomLoop& looper)
+    {
+        looper.setBufferLength(std::clamp<int>(newBufferLength, 0, 352800, std::less<int>()));
+    });
+    
+    std::for_each(cdSkipper.begin(),
+                  cdSkipper.end(),
+                  [&newBufferLength](CDSkip& skipper)
+    {
+        skipper.setBufferLength(std::clamp<int>(newBufferLength, 0, 352800, std::less<int>()));
+    });
+}
+void BrokenPlayer::newNumRepeats(float newRepeatCount) {}
+void BrokenPlayer::setClockSpeed(float newClockSpeed) { clockPeriod = newClockSpeed; }

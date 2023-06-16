@@ -154,7 +154,7 @@ bool Line<SampleType>::reset(SampleType _sampleRate)
 }
 
 template <typename SampleType>
-SampleType Line<SampleType>::getParameters() { return rampTimeSecs; }
+SampleType Line<SampleType>::getParameters() { return rampTimeSamps; }
 
 template <typename SampleType>
 void Line<SampleType>::setParameters(const SampleType& newRampTime)

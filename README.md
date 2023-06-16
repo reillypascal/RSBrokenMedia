@@ -1,8 +1,8 @@
 # RS Broken Media
 
-Generates new stereo tape speeds, CD skipping patterns, and lo-fi effects on every pulse of an adjustable clock. Probabilibies and intensities of these effects are controlled by the "Analog FX," "Digital FX," and "Lo-Fi FX" knobs.
+Generates new stereo tape speeds, CD skipping patterns, and distortion effects on every pulse of an adjustable clock. Probabilibies and intensities of these effects are controlled by the "Analog FX," "Digital FX," and "Distortion FX" knobs.
 
-Work-in-progress. Check back later for more!
+Dropdowns offer downsampling and codec options. Codecs currently include [Émilie Gillet's](https://github.com/pichenettes) open-source "μ-law" 8-bit implementation, with the GSM 06.10 cell phone codec to come.
 
 ## Build Dependencies:
 - JUCE (https://juce.com/download/)
@@ -13,7 +13,7 @@ Work-in-progress. Check back later for more!
 	- C:\Program Files\Common Files\VST3 (VST3)
 	- C:\Program Files\Common Files\Avid\Audio\Plug-Ins (AAX) 
 -->
-<!--## macOS:
+## macOS:
 - Compiled macOS files are available under "Releases". Unzip the files and place them in 
 	- Macintosh HD/Library/Audio/Plug-Ins/Components/ (AU)
 	- Macintosh HD/Library/Audio/Plug-Ins/VST3/ (VST3)
@@ -28,14 +28,14 @@ spctl --add "/Library/Audio/Plug-Ins/Components/RSAlgorithmicVerb.component"
 spctl --add "/Library/Audio/Plug-Ins/VST3/RSAlgorithmicVerb.vst3"
 ```
 
-...or for AAX...
+<!--...or for AAX...
 ```sh
 spctl --add "/Library/Application Support/Avid/Audio/Plug-Ins/RSAlgorithmicVerb.aaxplugin"
 ```
-
+-->
 - You can also add the file path by typing...
 ```sh
 spctl --add 
 ```
 
-...(with a space at the end) and dragging the plugin file into the terminal, which will automatically add the file path.-->
+...(with a space at the end) and dragging the plugin file into the terminal, which will automatically add the file path.

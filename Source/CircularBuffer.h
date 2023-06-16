@@ -52,20 +52,20 @@ public:
     //==============================================================================
     void fillNextBlock(int channel, const int inBufferLength, const SampleType* inBufferData)
     {
-        if (mCircularBuffer.getNumSamples() > inBufferLength + mWritePosition.at(channel))
+        if (mUsedSegmentLength > inBufferLength + mWritePosition.at(channel))
         {
             mCircularBuffer.copyFromWithRamp(channel, mWritePosition.at(channel), inBufferData, inBufferLength, 1, 1);
         }
         else
         {
-            const int bufferRemaining = mCircularBuffer.getNumSamples() - mWritePosition.at(channel);
+            const int bufferRemaining = mUsedSegmentLength - mWritePosition.at(channel);
             
             mCircularBuffer.copyFromWithRamp(channel, mWritePosition.at(channel), inBufferData, bufferRemaining, 1, 1);
             mCircularBuffer.copyFromWithRamp(channel, 0, inBufferData, inBufferLength - bufferRemaining, 1, 1);
         }
         
         mWritePosition.at(channel) += inBufferLength;
-        mWritePosition.at(channel) %= mTotalSize;
+        mWritePosition.at(channel) %= mUsedSegmentLength;
     }
     
     //==============================================================================
@@ -78,10 +78,10 @@ public:
         int index1 = readPosInt;
         int index2 = readPosInt + 1;
         
-        if (index2 >= mTotalSize)
+        if (index2 >= mUsedSegmentLength)
         {
-            index1 %= mTotalSize;
-            index2 %= mTotalSize;
+            index1 %= mUsedSegmentLength;
+            index2 %= mUsedSegmentLength;
         }
                 
         SampleType value1 = mCircularBuffer.getSample(channel, index1);
@@ -100,6 +100,11 @@ public:
     //==============================================================================
     const juce::String getName() const { return "CircularBuffer"; };
     
+    //==============================================================================
+    const int setUsedBufferSegmentLength(const int newSegmentLength)
+    {
+        mUsedSegmentLength = std::clamp<int>(newSegmentLength, 0, mTotalSize - 512, std::less<int>());
+    }
 private:
     juce::AudioBuffer<SampleType> mCircularBuffer;
     
@@ -108,6 +113,7 @@ private:
     
     int mNumSamples { 0 };
     int mTotalSize { 0 };
+    int mUsedSegmentLength { 66150 };
     
     SampleType readPosFrac { 0 };
     int readPosInt { 0 };
