@@ -292,3 +292,33 @@ void DownsampleAndFilter::setDownsampling(int newDownsampling)
     
     reset();
 }
+
+
+//==============================================================================
+void ChebyDrive::process(const juce::dsp::ProcessContextReplacing<float>& context)
+{
+    auto& inBlock = context.getInputBlock();
+    auto& outBlock = context.getOutputBlock();
+    
+    jassert(inBlock.getNumSamples() == outBlock.getNumSamples());
+    jassert(inBlock.getNumChannels() == outBlock.getNumChannels());
+    
+    size_t numSamples = inBlock.getNumSamples();
+    size_t numChannels = inBlock.getNumChannels();
+    
+    // drive
+    for (size_t channel = 0; channel < numChannels; ++channel)
+    {
+        auto* src = inBlock.getChannelPointer(channel);
+        auto* dst = outBlock.getChannelPointer(channel);
+        
+        for (size_t sample = 0; sample < numSamples; ++sample)
+        {
+            float wetSignal = ((std::pow(2.0f * src[sample], 2.0f) - 1.0f) * std::sin(0.5 * M_PI * drive));
+            float drySignal = src[sample] * std::cos(0.5 * M_PI * drive);
+            dst[sample] = wetSignal + drySignal;
+        }
+    }
+}
+
+void ChebyDrive::setDrive(float newDrive) { drive = newDrive; }

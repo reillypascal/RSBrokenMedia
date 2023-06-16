@@ -93,3 +93,23 @@ private:
     
     juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> filterCoefficientsArray;
 };
+
+//==============================================================================
+class ChebyDrive : public juce::dsp::ProcessorBase
+{
+public:
+    ChebyDrive() = default;
+    
+    ~ChebyDrive() = default;
+    
+    void prepare(const juce::dsp::ProcessSpec& spec) override;
+    
+    void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
+    
+    void reset() override;
+    
+    void setDrive(float newDrive);
+    
+private:
+    float drive { 0.0f };
+};
