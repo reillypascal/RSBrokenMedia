@@ -20,17 +20,17 @@ Dropdowns offer downsampling and codec options. Codecs currently include [Émili
 <!--	- Macintosh HD/Library/Application Support/Avid/Audio/Plug-Ins (AAX) -->
 - You will likely need to disable Gatekeeper for the plugins. To do this for AU, type...
 ```sh
-spctl --add "/Library/Audio/Plug-Ins/Components/RSAlgorithmicVerb.component"
+spctl --add "/Library/Audio/Plug-Ins/Components/RSBrokenMedia.component"
 ```
 
 ...for VST3...
 ```sh
-spctl --add "/Library/Audio/Plug-Ins/VST3/RSAlgorithmicVerb.vst3"
+spctl --add "/Library/Audio/Plug-Ins/VST3/RSBrokenMedia.vst3"
 ```
 
 <!--...or for AAX...
 ```sh
-spctl --add "/Library/Application Support/Avid/Audio/Plug-Ins/RSAlgorithmicVerb.aaxplugin"
+spctl --add "/Library/Application Support/Avid/Audio/Plug-Ins/RSBrokenMedia.aaxplugin"
 ```
 -->
 - You can also add the file path by typing...
