@@ -139,7 +139,16 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
             mPlaybackRate.at(channel) *= tapeStopSpeed;
             
             //================ playback ================
-            //================ skips ================
+            //================ repeats ================
+            if (mNumRepeats > 1)
+            {
+                if (channel == 0 && repeatsCounter.at(channel) == 0)
+                    repeatsValues = repeater.advanceCtrAndReturn();
+                if (repeatsCounter.at(channel) == 0)
+                    mReadPosition.at(channel) = repeatsValues.at(0);
+            }
+            
+            /*
             if (skipProb.at(channel) < cdSkipProb)
             {
                 std::vector<int> skipLoop;
@@ -176,8 +185,9 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 ++cdSkipPlayCounter.at(channel);
                 cdSkipPlayCounter.at(channel) %= cdSkipPlayLength.at(channel);
             }
+             */
             //================ loops ================
-            else if (skipProb.at(channel) < randomLoopProb && skipProb.at(channel) >= cdSkipProb)
+            if (skipProb.at(channel) < randomLoopProb)
             {
                 std::vector<int> randomLoop = randomLooper.at(channel).advanceCtrAndReturn();
                 
@@ -197,6 +207,15 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 mReadPosition.at(channel) += mPlaybackRate.at(channel);
                 mReadPosition.at(channel) = wrap(mReadPosition.at(channel), static_cast<float>(mBentBufferLength));
             }
+            
+            // wrap repeats counter/value
+            if (mNumRepeats > 1)
+            {
+                ++repeatsCounter.at(channel);
+                if (repeatsCounter.at(channel) >= repeatsValues.at(1))
+                    repeatsCounter.at(channel) = 0;
+            }
+            
         } // sample loop
     } // channel loop
     
@@ -258,25 +277,10 @@ void BrokenPlayer::setAnalogFX(float newAnalogFX)
 }
 void BrokenPlayer::setDigitalFX(float newDigitalFX)
 {
-    /*
-    float cdSkipFoldover = 0.6;
-    float cdSkipScale = 0.75;
-    
-    if (newDigitalFX < cdSkipFoldover)
-        cdSkipProb = newDigitalFX * cdSkipScale;
-    else
-        cdSkipProb = std::clamp<float>((cdSkipFoldover * cdSkipScale) - ((newDigitalFX - cdSkipFoldover) * cdSkipScale), 0.0f, 1.0f, std::less<float>());
-    */
-    //cdSkipProb = std::clamp<float>(newDigitalFX * 0.8, 0.0f, 0.5f, std::less<float>());
-    if (newDigitalFX < 0.8)
-        cdSkipProb = powf(newDigitalFX, 2.0f) * 0.45;
-    else
-        cdSkipProb = 0;
-    
     randomLoopProb = powf(newDigitalFX, 0.707f);
 }
 void BrokenPlayer::setLofiFX(float newLofiFX) { bitcrusherProb = newLofiFX; }
-void BrokenPlayer::setBufferLength(float newBufferLength)
+void BrokenPlayer::setBufferLength(int newBufferLength)
 {
     mBentBufferLength = std::clamp<int>(newBufferLength, 0, 352800, std::less<int>());
     
@@ -286,13 +290,25 @@ void BrokenPlayer::setBufferLength(float newBufferLength)
     {
         looper.setBufferLength(std::clamp<int>(newBufferLength, 0, 352800, std::less<int>()));
     });
-    
+    /*
     std::for_each(cdSkipper.begin(),
                   cdSkipper.end(),
                   [&newBufferLength](CDSkip& skipper)
     {
-        skipper.setBufferLength(std::clamp<int>(newBufferLength, 0, 352800, std::less<int>()));
-    });
+     */
+    repeater.setBufferLength(std::clamp<int>(newBufferLength, 0, 352800, std::less<int>()));
+    //});
 }
-void BrokenPlayer::newNumRepeats(float newRepeatCount) {}
+void BrokenPlayer::newNumRepeats(int newRepeatCount)
+{
+    /*
+    std::for_each(cdSkipper.begin(),
+                  cdSkipper.end(),
+                  [&newRepeatCount](CDSkip& skipper)
+    {
+     */
+    repeater.setBufferDivisions(newRepeatCount);
+    mNumRepeats = newRepeatCount;
+    //});
+}
 void BrokenPlayer::setClockSpeed(float newClockSpeed) { clockPeriod = newClockSpeed; }

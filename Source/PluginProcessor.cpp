@@ -54,7 +54,7 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     juce::NormalisableRange<float>(1,
                                                                                    64,
                                                                                    1),
-                                                    8),
+                                                    1),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "dryWetMix", 1 },
                                                     "Dry/Wet Mix",
                                                     0.0f,
@@ -220,7 +220,7 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     
     float clockSpeed = static_cast<float>(*clockSpeedParameter);
     int bufferLength = static_cast<int>(*bufferLengthParameter * 44.1f);
-    //int numRepeats = static_cast<int>(*repeatsParameter);
+    int numRepeats = static_cast<int>(*repeatsParameter);
     float dryWetMix = static_cast<float>(*dryWetMixParameter);
     
     int downsampling = static_cast<int>(*downsamplingMenuParameter);
@@ -252,7 +252,7 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     
     brokenPlayer.setClockSpeed(clockSpeed);
     brokenPlayer.setBufferLength(bufferLength);
-    
+    brokenPlayer.newNumRepeats(numRepeats);
     brokenPlayer.processBlock(buffer, midiMessages);
     
     //======== constant codec processing ========

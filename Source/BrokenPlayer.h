@@ -91,7 +91,7 @@ public:
         if (counter == 0)
         {
             // new number of skips
-            countLength = rand() % 3 + 2;
+            //countLength = rand() % 3 + 2;
             
             // increment to next segment
             ++segmentCounter;
@@ -103,7 +103,7 @@ public:
         
         // count number of skips
         ++counter;
-        counter %= countLength;
+        counter %= bufferDivisions;
         
         // limit skip end value
         std::for_each(loopValues.begin(),
@@ -117,17 +117,22 @@ public:
     {
         bufferLength = std::clamp<int>(newBufferLen, 0, 352800, std::less<int>());
         counter = 0;
+        segmentCounter = 0;
+    }
+    
+    void setBufferDivisions(int newNumDivisions)
+    {
+        bufferDivisions = newNumDivisions;
+        bufferSegmentLength = bufferLength / bufferDivisions;
     }
     
 private:
     std::vector<int> loopValues { 0, 4410 };
     int bufferLength = 44100;
-    int segmentCounter = 0;
     int bufferDivisions = 8;
     int bufferSegmentLength = 4410;
-    int countLength = 3;
+    int segmentCounter = 0;
     int counter = 0;
-    
 };
 
 
@@ -166,8 +171,8 @@ public:
     void setAnalogFX(float newAnalogFX);
     void setDigitalFX(float newDigitalFX);
     void setLofiFX(float newLofiFX);
-    void setBufferLength(float newBufferLength);
-    void newNumRepeats(float newRepeatCount);
+    void setBufferLength(int newBufferLength);
+    void newNumRepeats(int newRepeatCount);
     void setClockSpeed(float newClockSpeed);
     
 private:
@@ -193,10 +198,15 @@ private:
     
     // digital FX
     std::vector<RandomLoop> randomLooper { RandomLoop(mBentBufferLength, 3308), RandomLoop(mBentBufferLength, 4410) };
-    std::vector<CDSkip> cdSkipper { CDSkip(mBentBufferLength, 4), CDSkip(mBentBufferLength, 4) };
+    //std::vector<CDSkip> cdSkipper { CDSkip(mBentBufferLength, 4), CDSkip(mBentBufferLength, 4) };
     std::vector<float> skipProb = { 0, 0 };
-    std::vector<int> cdSkipPlayCounter = { 0, 0 };
-    std::vector<int> cdSkipPlayLength = { 4410, 4410 };
+    //std::vector<int> cdSkipPlayCounter = { 0, 0 };
+    //std::vector<int> cdSkipPlayLength = { 4410, 4410 };
+    CDSkip repeater { mBentBufferLength, 8 };
+    std::vector<int> repeatsValues { 0, 4410 };
+    std::vector<int> repeatsCounter = { 0, 0 };
+    std::vector<int> repeatsPlaybackCounter { 0, 0 };
+    int mNumRepeats = 1;
     std::vector<int> prevRandomLoop = { 0, 4410 };
     std::vector<int> randomLooperPlayCounter = { 0, 0 };
     std::vector<int> randomLooperPlayLength = { 4410, 4410 };
