@@ -1,6 +1,6 @@
 # RS Broken Media
 
-Generates new stereo tape speeds, CD skipping patterns, and distortion effects on every pulse of an adjustable clock. Probabilibies and intensities of these effects are controlled by the "Analog FX," "Digital FX," and "Distortion FX" knobs.
+Generates new stereo tape speeds, CD skipping patterns, and distortion effects on every pulse of an adjustable clock. Probabilibies and intensities of these effects are controlled by the "Analog FX," "Digital FX," and "Distortion FX" knobs. The "Repeats" knob controls both the number of subdivisions of the buffer, as well as the number of repeats for those subdivisions.
 
 Dropdowns offer downsampling and codec options. Codecs currently include [Émilie Gillet's](https://github.com/pichenettes) open-source "μ-law" 8-bit implementation, with the GSM 06.10 cell phone codec to come.
 
