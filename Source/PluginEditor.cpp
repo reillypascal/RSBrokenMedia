@@ -123,7 +123,7 @@ void RSBrokenMediaAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText ("RS Broken Media", 25, 10, 350, 45, juce::Justification::left, 1);
     // info
     g.setFont (juce::Font("Verdana", 16.0f, juce::Font::plain));
-    g.drawFittedText ("Version 0.1.0\n reillyspitzfaden.netlify.app", getWidth() - 375, 15, 350, 45, juce::Justification::right, 2);
+    g.drawFittedText ("Version 0.1.1\n reillyspitzfaden.netlify.app", getWidth() - 375, 15, 350, 45, juce::Justification::right, 2);
     
     // panels
     // tried 93,107,128 (outlive max patch)
