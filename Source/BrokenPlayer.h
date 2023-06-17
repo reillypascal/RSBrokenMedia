@@ -97,8 +97,10 @@ public:
             ++segmentCounter;
             segmentCounter %= (bufferDivisions - 1);
             
-            loopValues.at(0) = segmentCounter * bufferSegmentLength;
-            loopValues.at(1) = bufferSegmentLength;
+            int newSegmentStart = segmentCounter * bufferSegmentLength;
+            
+            loopValues.at(0) = newSegmentStart >= 0 && newSegmentStart < bufferLength ? newSegmentStart : 0;
+            loopValues.at(1) = bufferSegmentLength >= 4 ? bufferSegmentLength : 4;
         }
         
         // count number of skips
