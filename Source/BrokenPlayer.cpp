@@ -59,7 +59,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
-    //clockCycle = static_cast<int>(clockPeriod * 44.1);
+    //clockCycle = static_cast<int>(clockPeriod * (getSampleRate() / 1000));
     //================ channel/sample loops ================
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
     {
@@ -70,58 +70,21 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
             //================ clock, clocked settings ================
-            if (clockCounter == 0 && channel == 0)
+            if (shouldUseExternalClock == false)
             {
-                //================ L/R tape speed destinations ================
-                std::for_each(tapeSpeedLine.begin(),
-                              tapeSpeedLine.end(),
-                              [this](Line<float>& line)
+                if (channel == 0)
                 {
-                    if (randomFloat() < tapeBendProb)
+                    if (clockCounter == 0)
                     {
-                        int index = rand() % tapeBendDepth;
-                        float dest = tapeBendVals.at(index);
-                        line.setDestination(dest);
+                        receiveClockedPulse();
+                        ++clockCounter;
                     }
-                });
-                
-                if (randomFloat() < tapeRevProb)
-                    tapeDirMultiplier = -1;
-                else
-                    tapeDirMultiplier = 1;
-                
-                //================ L/R tape stops ================
-                std::for_each(tapeStopLine.begin(),
-                              tapeStopLine.end(),
-                              [this](Line<float>& line)
-                {
-                    if (randomFloat() < tapeStopProb)
+                    else
                     {
-                        line.setParameters(rampTime);
-                        line.setDestination(0);
+                        ++clockCounter;
+                        clockCounter %= clockCycle;
                     }
-                });
-                
-                //================ skip/loop probs ================
-                std::for_each(skipProb.begin(),
-                              skipProb.end(),
-                              [this](float& prob){ prob = randomFloat(); });
-                
-                //================ distortion FX ================
-                // bitcrusher
-                useBitcrusher = (randomFloat() < std::clamp<float>(bitcrusherProb * 3, 0.0, 1.0, [](const float& a, const float& b) { return a < b; }));
-                
-                float scaledProb = powf(bitcrusherProb, 3.0f);
-                
-                bitcrusher.setBitDepth(floor( scale(scaledProb * -1 + 1, 0.0f, 1.0f, 5.0f, 12.0f) + 0.5) + (randomFloat() * 3) );
-                
-                bitcrusher.setDownsampling(static_cast<int>( scale(scaledProb, 0.0f, 1.0f, 2.0f, 15.0f) + (randomFloat() * (1 + (scaledProb * 16)))  ));
-                
-            }
-            if (channel == buffer.getNumChannels() - 1)
-            {
-                clockCounter++;
-                clockCounter %= clockCycle;
+                }
             }
             
             //================ tape speed adjustments ================
@@ -253,6 +216,54 @@ void BrokenPlayer::getStateInformation(juce::MemoryBlock&) {}
 void BrokenPlayer::setStateInformation(const void*, int) {}
 
 //==============================================================================
+void BrokenPlayer::receiveClockedPulse()
+{
+    //================ L/R tape speed destinations ================
+    std::for_each(tapeSpeedLine.begin(),
+                  tapeSpeedLine.end(),
+                  [this](Line<float>& line)
+                  {
+        if (randomFloat() < tapeBendProb)
+        {
+            int index = rand() % tapeBendDepth;
+            float dest = tapeBendVals.at(index);
+            line.setDestination(dest);
+        }
+    });
+    
+    if (randomFloat() < tapeRevProb)
+        tapeDirMultiplier = -1;
+    else
+        tapeDirMultiplier = 1;
+    
+    //================ L/R tape stops ================
+    std::for_each(tapeStopLine.begin(),
+                  tapeStopLine.end(),
+                  [this](Line<float>& line)
+                  {
+        if (randomFloat() < tapeStopProb)
+        {
+            line.setParameters(rampTime);
+            line.setDestination(0);
+        }
+    });
+    
+    //================ skip/loop probs ================
+    std::for_each(skipProb.begin(),
+                  skipProb.end(),
+                  [this](float& prob){ prob = randomFloat(); });
+    
+    //================ distortion FX ================
+    // bitcrusher
+    useBitcrusher = (randomFloat() < std::clamp<float>(bitcrusherProb * 3, 0.0, 1.0, [](const float& a, const float& b) { return a < b; }));
+    
+    float scaledProb = powf(bitcrusherProb, 3.0f);
+    
+    bitcrusher.setBitDepth(floor( scale(scaledProb * -1 + 1, 0.0f, 1.0f, 5.0f, 12.0f) + 0.5) + (randomFloat() * 3) );
+    
+    bitcrusher.setDownsampling(static_cast<int>( scale(scaledProb, 0.0f, 1.0f, 2.0f, 15.0f) + (randomFloat() * (1 + (scaledProb * 16)))  ));
+}
+//==============================================================================
 void BrokenPlayer::setAnalogFX(float newAnalogFX)
 {
     tapeBendProb = newAnalogFX;
@@ -311,4 +322,4 @@ void BrokenPlayer::newNumRepeats(int newRepeatCount)
 }
 void BrokenPlayer::setClockSpeed(int newClockSpeed) { clockCycle = newClockSpeed; }
 //void BrokenPlayer::setClockSpeed(float newClockSpeed) { clockPeriod = newClockSpeed; }
-void BrokenPlayer::resetClock() { clockCounter = 0; }
+void BrokenPlayer::useExternalClock(bool newShouldUseExternalClock) { shouldUseExternalClock = newShouldUseExternalClock; }

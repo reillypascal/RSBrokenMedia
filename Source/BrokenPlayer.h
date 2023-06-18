@@ -170,13 +170,15 @@ public:
     void setStateInformation(const void*, int) override;
     
     //==============================================================================
+    void receiveClockedPulse();
+    //==============================================================================
     void setAnalogFX(float newAnalogFX);
     void setDigitalFX(float newDigitalFX);
     void setLofiFX(float newLofiFX);
     void setBufferLength(int newBufferLength);
     void newNumRepeats(int newRepeatCount);
     void setClockSpeed(int newClockSpeed);
-    void resetClock();
+    void useExternalClock(bool shouldUseExternalClock);
     //void setClockSpeed(float newClockSpeed);
     
 private:
@@ -197,6 +199,7 @@ private:
     juce::AudioPlayHead* audioPlayHead = nullptr;
     juce::Optional<juce::AudioPlayHead::PositionInfo> positionInfo;
     //double bpm;
+    bool shouldUseExternalClock = false;
     
     // tape FX
     std::vector<Line<float>> tapeSpeedLine { Line<float>(), Line<float>()};
