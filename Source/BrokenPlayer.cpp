@@ -59,8 +59,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
-    clockCycle = static_cast<int>(clockPeriod * 44.1);
-    
+    //clockCycle = static_cast<int>(clockPeriod * 44.1);
     //================ channel/sample loops ================
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
     {
@@ -71,7 +70,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
             //================ clock, clocked settings ================
-            if (clockCounter == 0)
+            if (clockCounter == 0 && channel == 0)
             {
                 //================ L/R tape speed destinations ================
                 std::for_each(tapeSpeedLine.begin(),
@@ -108,7 +107,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                               skipProb.end(),
                               [this](float& prob){ prob = randomFloat(); });
                 
-                //================ lofi FX ================
+                //================ distortion FX ================
                 // bitcrusher
                 useBitcrusher = (randomFloat() < std::clamp<float>(bitcrusherProb * 3, 0.0, 1.0, [](const float& a, const float& b) { return a < b; }));
                 
@@ -118,7 +117,6 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 
                 bitcrusher.setDownsampling(static_cast<int>( scale(scaledProb, 0.0f, 1.0f, 2.0f, 15.0f) + (randomFloat() * (1 + (scaledProb * 16)))  ));
                 
-                //
             }
             if (channel == buffer.getNumChannels() - 1)
             {
@@ -311,4 +309,6 @@ void BrokenPlayer::newNumRepeats(int newRepeatCount)
     mNumRepeats = newRepeatCount;
     //});
 }
-void BrokenPlayer::setClockSpeed(float newClockSpeed) { clockPeriod = newClockSpeed; }
+void BrokenPlayer::setClockSpeed(int newClockSpeed) { clockCycle = newClockSpeed; }
+//void BrokenPlayer::setClockSpeed(float newClockSpeed) { clockPeriod = newClockSpeed; }
+void BrokenPlayer::resetClock() { clockCounter = 0; }

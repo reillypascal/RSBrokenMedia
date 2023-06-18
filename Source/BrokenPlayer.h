@@ -175,7 +175,9 @@ public:
     void setLofiFX(float newLofiFX);
     void setBufferLength(int newBufferLength);
     void newNumRepeats(int newRepeatCount);
-    void setClockSpeed(float newClockSpeed);
+    void setClockSpeed(int newClockSpeed);
+    void resetClock();
+    //void setClockSpeed(float newClockSpeed);
     
 private:
     int mBentBufferLength = 66150; // length of full 8s buffer to use
@@ -188,15 +190,20 @@ private:
     OscillatorParameters lfoParameters;
     SignalGenData<float> lfoOutput;
     
+    // clock
+    int clockCounter = 0;
+    int clockCycle = 33075;
+    bool isTransportPlaying = false;
+    juce::AudioPlayHead* audioPlayHead = nullptr;
+    juce::Optional<juce::AudioPlayHead::PositionInfo> positionInfo;
+    //double bpm;
+    
     // tape FX
     std::vector<Line<float>> tapeSpeedLine { Line<float>(), Line<float>()};
     std::vector<Line<float>> tapeStopLine { Line<float>(), Line<float>()};
     float rampTime = 6615;
-    
     std::vector<float> tapeBendVals { 1.0, 0.67, 1.5, 0.5, 2.0 };
     float tapeDirMultiplier = 1;
-    int clockCounter = 0;
-    int clockCycle = 33075;
     
     // digital FX
     std::vector<RandomLoop> randomLooper { RandomLoop(mBentBufferLength, 3308), RandomLoop(mBentBufferLength, 4410) };

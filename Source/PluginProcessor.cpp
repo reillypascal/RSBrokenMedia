@@ -43,6 +43,10 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                                                    2000,
                                                                                    5),
                                                     675),
+        std::make_unique<juce::AudioParameterChoice>(juce::ParameterID { "clockSpeedNote", 1 },
+                                                    "Clock Speed (Note)",
+                                                    juce::StringArray { "4x 1n", "2x 1n", "1n", "2n", "4nd", "4n", "8nd", "4nt", "8n", "8nt", "16n" },
+                                                    3),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "bufferLength", 1 },
                                                     "Buffer Length",
                                                     juce::NormalisableRange<float>(12,
@@ -75,6 +79,7 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
     lofiFXParameter = parameters.getRawParameterValue("lofiFX");
     
     clockSpeedParameter = parameters.getRawParameterValue("clockSpeed");
+    clockSpeedNoteParameter = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("clockSpeedNote"));
     bufferLengthParameter = parameters.getRawParameterValue("bufferLength");
     repeatsParameter = parameters.getRawParameterValue("repeats");
     dryWetMixParameter = parameters.getRawParameterValue("dryWetMix");
@@ -213,12 +218,23 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
+    //======== tempo ========
+    audioPlayHead = this->getPlayHead();
+    positionInfo = (audioPlayHead->getPosition());
+    bpm = positionInfo->getBpm().orFallback(120); // or without fallback, *positionInfo->getBpm()
+    isPlaying = positionInfo->getIsPlaying();
+    if (isPlaying == false && previousPlayingState == true)
+        previousPlayingState = false;
+    //{ "4x 1n", "2x 1n", "1n", "2n", "4nd", "4n", "8nd", "4nt", "8n", "8nt", "16n" }
+    std::vector<float> clockNoteValues { 16.0f, 8.0f, 4.0f, 2.0f, 1.5f, 1.0f, 0.75f, 0.666667f, 0.5f, 0.333333f, 0.25f };
+    
     //======== get parameters ========
     float analogFX = static_cast<float>(*analogFXParameter);
     float digitalFX = static_cast<float>(*digitalFXParameter);
     float lofiFX = static_cast<float>(*lofiFXParameter);
     
-    float clockSpeed = static_cast<float>(*clockSpeedParameter);
+    //float clockSpeed = static_cast<float>(*clockSpeedParameter);
+    int clockSpeedNote = static_cast<int>((clockNoteValues.at(static_cast<int>(*clockSpeedNoteParameter)) * 60 * getSampleRate()) / bpm);
     int bufferLength = static_cast<int>(*bufferLengthParameter * 44.1f);
     int numRepeats = static_cast<int>(*repeatsParameter);
     float dryWetMix = static_cast<float>(*dryWetMixParameter);
@@ -250,11 +266,17 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     brokenPlayer.setDigitalFX(digitalFX);
     brokenPlayer.setLofiFX(lofiFX);
     
-    brokenPlayer.setClockSpeed(clockSpeed);
+    //brokenPlayer.setClockSpeed(clockSpeed);
+    brokenPlayer.setClockSpeed(clockSpeedNote);
+    if (isPlaying == true && previousPlayingState == false)
+    {
+        //brokenPlayer.resetClock();
+        previousPlayingState = true;
+    }
     brokenPlayer.setBufferLength(bufferLength);
     brokenPlayer.newNumRepeats(numRepeats);
     brokenPlayer.processBlock(buffer, midiMessages);
-    
+        
     //======== constant codec processing ========
     juce::dsp::AudioBlock<float> postBrokenBlock { buffer };
     if (codec == 1) // if menu doesn't include GSM, need 2 to work

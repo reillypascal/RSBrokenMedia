@@ -63,7 +63,8 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     clockSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     clockSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
     addAndMakeVisible(clockSlider);
-    clockAttachment.reset(new SliderAttachment(valueTreeState, "clockSpeed", clockSlider));
+    clockAttachment.reset(new SliderAttachment(valueTreeState, "clockSpeedNote", clockSlider));
+    //clockAttachment.reset(new SliderAttachment(valueTreeState, "clockSpeed", clockSlider));
     
     bufferLengthSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     bufferLengthSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);

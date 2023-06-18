@@ -67,12 +67,19 @@ private:
     std::atomic<float>* lofiFXParameter = nullptr;
     
     std::atomic<float>* clockSpeedParameter = nullptr;
+    juce::AudioParameterChoice* clockSpeedNoteParameter;
     std::atomic<float>* bufferLengthParameter = nullptr;
     std::atomic<float>* repeatsParameter = nullptr;
     std::atomic<float>* dryWetMixParameter = nullptr;
     
     juce::AudioParameterChoice* codecMenuParameter = nullptr;
     juce::AudioParameterChoice* downsamplingMenuParameter = nullptr;
+    
+    juce::AudioPlayHead* audioPlayHead = nullptr;
+    juce::Optional<juce::AudioPlayHead::PositionInfo> positionInfo;
+    double bpm;
+    bool isPlaying = false;
+    bool previousPlayingState = false;
     
     BrokenPlayer brokenPlayer;
     juce::dsp::DryWetMixer<float> dryWetMixer;
