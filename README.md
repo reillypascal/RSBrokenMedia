@@ -16,11 +16,8 @@ Dropdowns offer downsampling and codec options. Codecs currently include [Émili
 	- C:\Program Files\Common Files\Avid\Audio\Plug-Ins (AAX) 
 -->
 ## macOS:
-- Compiled macOS files are available under "Releases". Unzip the files and place them in 
-	- Macintosh HD/Library/Audio/Plug-Ins/Components/ (AU)
-	- Macintosh HD/Library/Audio/Plug-Ins/VST3/ (VST3)
-<!--	- Macintosh HD/Library/Application Support/Avid/Audio/Plug-Ins (AAX) -->
-- You will likely need to disable Gatekeeper for the plugins. To do this for AU, type...
+- Compiled macOS files are available under "Releases".
+- You will likely need to disable Gatekeeper for the plugins. To do this for AU, open Terminal.app and type...
 ```sh
 spctl --add "/Library/Audio/Plug-Ins/Components/RSBrokenMedia.component"
 ```
