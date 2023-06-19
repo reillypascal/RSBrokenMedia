@@ -63,9 +63,30 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     clockSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     clockSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
     addAndMakeVisible(clockSlider);
-    clockAttachment.reset(new SliderAttachment(valueTreeState, "clockSpeedNote", clockSlider));
-    //clockAttachment.reset(new SliderAttachment(valueTreeState, "clockSpeed", clockSlider));
+    clockAttachment.reset(new SliderAttachment(valueTreeState, "clockSpeed", clockSlider));
     
+    // button
+    clockModeButton.setButtonText("Sync");
+    clockModeButton.setToggleable(true);
+    clockModeButton.setClickingTogglesState(true);
+    clockModeButton.onClick = [&]
+    {
+        bool buttonState = clockModeButton.getToggleState();
+        if (buttonState == true)
+        {
+            clockAttachment.reset(new SliderAttachment(valueTreeState, "clockSpeedNote", clockSlider));
+            p.setUseDawClock(buttonState);
+        }
+        else
+        {
+            clockAttachment.reset(new SliderAttachment(valueTreeState, "clockSpeed", clockSlider));
+            p.setUseDawClock(buttonState);
+        }
+    };
+    addAndMakeVisible(clockModeButton);
+    clockModeAttachment.reset(new ButtonAttachment(valueTreeState, "clockMode", clockModeButton));
+    
+    // sliders row 2 (cont.)
     bufferLengthSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     bufferLengthSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
     addAndMakeVisible(bufferLengthSlider);
@@ -124,7 +145,7 @@ void RSBrokenMediaAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText ("RS Broken Media", 25, 10, 350, 45, juce::Justification::left, 1);
     // info
     g.setFont (juce::Font("Verdana", 16.0f, juce::Font::plain));
-    g.drawFittedText ("Version 0.1.1\n reillyspitzfaden.netlify.app", getWidth() - 375, 15, 350, 45, juce::Justification::right, 2);
+    g.drawFittedText ("Version 0.2.0\n reillyspitzfaden.netlify.app", getWidth() - 375, 15, 350, 45, juce::Justification::right, 2);
     
     // panels
     // tried 93,107,128 (outlive max patch)
@@ -182,6 +203,11 @@ void RSBrokenMediaAudioProcessorEditor::resized()
                               yBorderTop + sliderHeight1 + rowSpacer,
                               sliderWidth2,
                               sliderHeight2);
+    // button
+    clockModeButton.setBounds(xBorder + 135,
+                              yBorderTop + sliderHeight1 + rowSpacer + 10,
+                              45,
+                              textBoxHeight);
     
     // row 1 labels
     analogFXLabel.setBounds(xBorder + ((sliderWidth1 / 2) - (textLabelWidth / 2)),

@@ -33,6 +33,10 @@ public:
         setColour(juce::ComboBox::textColourId, juce::Colours::aliceblue);
         setColour(juce::ComboBox::outlineColourId, juce::Colours::aliceblue);
         setColour(juce::ComboBox::arrowColourId, juce::Colours::aliceblue);
+        // buttons
+        setColour(juce::TextButton::buttonOnColourId, juce::Colours::aliceblue);
+        //setColour(juce::TextButton::textColourOnId, juce::Colours::black);
+        setColour(juce::TextButton::textColourOnId, juce::Colour::fromRGB(32, 32, 32));
         
         // fonts
         setDefaultSansSerifTypeface(juce::LookAndFeel::getTypefaceForFont(juce::Font("Verdana", 18.0f, juce::Font::plain)));
@@ -51,7 +55,7 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-    
+        
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
     using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
@@ -76,6 +80,8 @@ private:
     juce::Slider bufferLengthSlider;
     juce::Slider repeatsSlider;
     juce::Slider dryWetMixSlider;
+    
+    juce::TextButton clockModeButton;
     
     juce::ComboBox codecModeMenu;
     juce::ComboBox downsamplingMenu;
@@ -102,6 +108,8 @@ private:
     std::unique_ptr<SliderAttachment> bufferLengthAttachment;
     std::unique_ptr<SliderAttachment> repeatsAttachment;
     std::unique_ptr<SliderAttachment> dryWetMixAttachment;
+    
+    std::unique_ptr<ButtonAttachment> clockModeAttachment;
     
     std::unique_ptr<ComboBoxAttachment> codecModeMenuAttachment;
     std::unique_ptr<ComboBoxAttachment> downsamplingMenuAttachment;

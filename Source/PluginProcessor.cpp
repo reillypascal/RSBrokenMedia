@@ -42,7 +42,7 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     juce::NormalisableRange<float>(80,
                                                                                    2000,
                                                                                    5),
-                                                    675),
+                                                    1000),
         std::make_unique<juce::AudioParameterChoice>(juce::ParameterID { "clockSpeedNote", 1 },
                                                     "Clock Speed (Note)",
                                                     juce::StringArray { "4 bars", "2 bars", "1 bar", "1/2d", "1/2", "1/4d", "1/4", "1/8d", "1/8", "1/16" },
@@ -64,6 +64,9 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     0.0f,
                                                     1.0f,
                                                     0.4f),
+        std::make_unique<juce::AudioParameterBool>(juce::ParameterID { "clockMode", 1 },
+                                                    "Clock Mode",
+                                                    false),
         std::make_unique<juce::AudioParameterChoice>(juce::ParameterID { "codec", 1 },
                                                     "Codec Menu",
                                                      juce::StringArray { "None", "MuLaw", "GSM" },
@@ -220,9 +223,10 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     
     //======== tempo ========
     audioPlayHead = this->getPlayHead();
-    positionInfo = (audioPlayHead->getPosition());
-    double bpm = positionInfo->getBpm().orFallback(120);
-    double quarterNotes = positionInfo->getPpqPosition().orFallback(0.0);
+    //positionInfo = audioPlayHead->getPosition().orFallback(juce::AudioPlayHead::PositionInfo {});
+    lastPosInfo.set(audioPlayHead->getPosition().orFallback(juce::AudioPlayHead::PositionInfo {}));
+    //double bpm = positionInfo->getBpm().orFallback(120);
+    double quarterNotes = lastPosInfo.get().getPpqPosition().orFallback(0.0);
     std::vector<float> clockNoteValues { 16.0f, 8.0f, 4.0f, 3.0f, 2.0f, 1.5f, 1.0f, 0.75f, 0.5f, 0.25f };
     
     //======== get parameters ========
@@ -230,9 +234,8 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     float digitalFX = static_cast<float>(*digitalFXParameter);
     float lofiFX = static_cast<float>(*lofiFXParameter);
     
-    //float clockSpeed = static_cast<float>(*clockSpeedParameter);
-    int clockSpeedNote = static_cast<int>((clockNoteValues.at(static_cast<int>(*clockSpeedNoteParameter - 1)) * 60 * getSampleRate()) / bpm);
-    //int clockSpeedNote = static_cast<int>(*clockSpeedNoteParameter);
+    float clockSpeed = static_cast<float>(*clockSpeedParameter) * (getSampleRate() / 1000);
+    int clockSpeedNoteIndex = static_cast<int>(*clockSpeedNoteParameter);
     int bufferLength = static_cast<int>(*bufferLengthParameter * 44.1f);
     int numRepeats = static_cast<int>(*repeatsParameter);
     float dryWetMix = static_cast<float>(*dryWetMixParameter);
@@ -265,13 +268,18 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     brokenPlayer.setLofiFX(lofiFX);
     
     brokenPlayer.useExternalClock(useDawClock);
-    //brokenPlayer.setClockSpeed(clockSpeed);
-    brokenPlayer.setClockSpeed(clockSpeedNote);
     if (useDawClock == true)
     {
-        if (fmod(quarterNotes / clockNoteValues.at(clockSpeedNote), 1.0f) == 0.0f && useDawClock)
+        int currentClock = static_cast<int>(quarterNotes / clockNoteValues.at(clockSpeedNoteIndex));
+        if (lastClock != currentClock)
+        {
             brokenPlayer.receiveClockedPulse();
+            lastClock = currentClock;
+        }
     }
+    else
+        brokenPlayer.setClockSpeed(clockSpeed);
+    
     brokenPlayer.setBufferLength(bufferLength);
     brokenPlayer.newNumRepeats(numRepeats);
     brokenPlayer.processBlock(buffer, midiMessages);
@@ -322,4 +330,14 @@ void RSBrokenMediaAudioProcessor::setStateInformation (const void* data, int siz
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new RSBrokenMediaAudioProcessor();
+}
+
+//==============================================================================
+void RSBrokenMediaAudioProcessor::setUseDawClock(bool shouldUseDawClock)
+{
+    useDawClock = shouldUseDawClock;
+    auto internalClockParameter = parameters.getParameter("clockSpeed");
+    internalClockParameter->setValueNotifyingHost(internalClockParameter->getDefaultValue());
+    auto externalClockParameter = parameters.getParameter("clockSpeedNote");
+    externalClockParameter->setValueNotifyingHost(externalClockParameter->getDefaultValue());
 }

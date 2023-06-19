@@ -12,6 +12,7 @@
 #include "BrokenPlayer.h"
 #include "CircularBuffer.h"
 #include "LofiProcessors.h"
+#include "Utilities.h"
 
 //==============================================================================
 /**
@@ -58,7 +59,9 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-
+    
+    //==============================================================================
+    void setUseDawClock(bool shouldUseDawClock);
 private:
     juce::AudioProcessorValueTreeState parameters;
     
@@ -79,6 +82,9 @@ private:
     juce::AudioPlayHead* audioPlayHead = nullptr;
     juce::Optional<juce::AudioPlayHead::PositionInfo> positionInfo;
     float lastPlayback = 0;
+    
+    SpinLockedPosInfo lastPosInfo;
+    int lastClock = -1;
     
     BrokenPlayer brokenPlayer;
     juce::dsp::DryWetMixer<float> dryWetMixer;
