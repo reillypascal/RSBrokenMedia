@@ -71,7 +71,7 @@ private:
     
     std::atomic<float>* clockSpeedParameter = nullptr;
     juce::AudioParameterChoice* clockSpeedNoteParameter;
-    bool useDawClock = true;
+    bool useDawClock = false;
     std::atomic<float>* bufferLengthParameter = nullptr;
     std::atomic<float>* repeatsParameter = nullptr;
     std::atomic<float>* dryWetMixParameter = nullptr;
@@ -81,10 +81,8 @@ private:
     
     juce::AudioPlayHead* audioPlayHead = nullptr;
     juce::Optional<juce::AudioPlayHead::PositionInfo> positionInfo;
-    float lastPlayback = 0;
-    
     SpinLockedPosInfo lastPosInfo;
-    int lastClock = -1;
+    float lastClock = -1;
     
     BrokenPlayer brokenPlayer;
     juce::dsp::DryWetMixer<float> dryWetMixer;

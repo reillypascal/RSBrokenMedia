@@ -21,7 +21,6 @@ public:
         // sliders
         setColour(juce::Slider::thumbColourId, juce::Colours::aliceblue);
         setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::lightsteelblue);
-        //setColour(juce::Slider::trackColourId, juce::Colours::slategrey);
         setColour(juce::Slider::trackColourId, juce::Colours::lightslategrey);
         setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::aliceblue);
         setColour(juce::Slider::textBoxTextColourId, juce::Colours::aliceblue);
@@ -35,8 +34,7 @@ public:
         setColour(juce::ComboBox::arrowColourId, juce::Colours::aliceblue);
         // buttons
         setColour(juce::TextButton::buttonOnColourId, juce::Colours::aliceblue);
-        //setColour(juce::TextButton::textColourOnId, juce::Colours::black);
-        setColour(juce::TextButton::textColourOnId, juce::Colour::fromRGB(32, 32, 32));
+        setColour(juce::TextButton::textColourOnId, juce::Colours::black);
         
         // fonts
         setDefaultSansSerifTypeface(juce::LookAndFeel::getTypefaceForFont(juce::Font("Verdana", 18.0f, juce::Font::plain)));

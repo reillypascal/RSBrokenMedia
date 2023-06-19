@@ -204,8 +204,8 @@ void RSBrokenMediaAudioProcessorEditor::resized()
                               sliderWidth2,
                               sliderHeight2);
     // button
-    clockModeButton.setBounds(xBorder + 135,
-                              yBorderTop + sliderHeight1 + rowSpacer + 10,
+    clockModeButton.setBounds(xBorder + (sliderWidth2 / 2) + (textBoxWidth / 2) + 12,
+                              yBorderTop + sliderHeight1 + rowSpacer + 106,
                               45,
                               textBoxHeight);
     

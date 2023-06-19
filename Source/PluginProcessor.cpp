@@ -223,9 +223,7 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     
     //======== tempo ========
     audioPlayHead = this->getPlayHead();
-    //positionInfo = audioPlayHead->getPosition().orFallback(juce::AudioPlayHead::PositionInfo {});
     lastPosInfo.set(audioPlayHead->getPosition().orFallback(juce::AudioPlayHead::PositionInfo {}));
-    //double bpm = positionInfo->getBpm().orFallback(120);
     double quarterNotes = lastPosInfo.get().getPpqPosition().orFallback(0.0);
     std::vector<float> clockNoteValues { 16.0f, 8.0f, 4.0f, 3.0f, 2.0f, 1.5f, 1.0f, 0.75f, 0.5f, 0.25f };
     
@@ -270,7 +268,7 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     brokenPlayer.useExternalClock(useDawClock);
     if (useDawClock == true)
     {
-        int currentClock = static_cast<int>(quarterNotes / clockNoteValues.at(clockSpeedNoteIndex));
+        float currentClock = floor(quarterNotes / clockNoteValues.at(clockSpeedNoteIndex));
         if (lastClock != currentClock)
         {
             brokenPlayer.receiveClockedPulse();
