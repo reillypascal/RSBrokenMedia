@@ -85,3 +85,22 @@ private:
     juce::SpinLock mutex;
     juce::AudioPlayHead::PositionInfo info;
 };
+
+class LockGuardedPosInfo
+{
+public:
+    void set(const juce::AudioPlayHead::PositionInfo& newInfo)
+    {
+        const std::lock_guard<std::mutex> lock(mutex);
+        info = newInfo;
+    }
+    
+    juce::AudioPlayHead::PositionInfo get() noexcept
+    {
+        const std::lock_guard<std::mutex> lock(mutex);
+        return info;
+    }
+private:
+    std::mutex mutex;
+    juce::AudioPlayHead::PositionInfo info;
+};

@@ -80,8 +80,8 @@ private:
     juce::AudioParameterChoice* downsamplingMenuParameter = nullptr;
     
     juce::AudioPlayHead* audioPlayHead = nullptr;
-    juce::Optional<juce::AudioPlayHead::PositionInfo> positionInfo;
-    SpinLockedPosInfo lastPosInfo;
+    //SpinLockedPosInfo lastPosInfo;
+    LockGuardedPosInfo lastPosInfo;
     float lastClock = -1;
     
     BrokenPlayer brokenPlayer;

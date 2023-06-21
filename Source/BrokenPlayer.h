@@ -230,7 +230,7 @@ private:
     float tapeRevProb = 0.33;
     float tapeStopProb = 0.25;
     
-    float cdSkipProb = 0.15;
+    //float cdSkipProb = 0.15;
     float randomLoopProb = 0.35;
     
     float bitcrusherProb = 0;

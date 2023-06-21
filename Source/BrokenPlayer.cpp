@@ -109,44 +109,44 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                     mReadPosition.at(channel) = repeatsValues.at(0);
             }
             
-            /*
-            if (skipProb.at(channel) < cdSkipProb)
-            {
-                std::vector<int> skipLoop;
-                
-                // read (and start next slice if necessary) before incrementing and wrapping
-                if (cdSkipPlayCounter.at(channel) == 0)
-                {
-                    skipLoop = cdSkipper.at(channel).advanceCtrAndReturn();
-                    
-                    mReadPosition.at(channel) = skipLoop.at(0);
-                    mChirpReadPosition.at(channel) = skipLoop.at(0);
-                    cdSkipPlayLength.at(channel) = skipLoop.at(1);
-                    
-                    channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
-                }
-                else
-                {
-                    channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
-                }
-                
-                // chirp
-                if (cdSkipPlayCounter.at(channel) < 75)
-                {
-                    channelData[sample] += mCircularBuffer.readSample(channel, mChirpReadPosition.at(channel));
-                    
-                    mChirpReadPosition.at(channel) += 7;
-                    mChirpReadPosition.at(channel) = wrap(mChirpReadPosition.at(channel), static_cast<float>(mBentBufferLength));
-                }
-                
-                // increment/wrap read position
-                mReadPosition.at(channel) += mPlaybackRate.at(channel);
-                mReadPosition.at(channel) = wrap(mReadPosition.at(channel), static_cast<float>(mBentBufferLength));
-                // increment/wrap skip timing counter
-                ++cdSkipPlayCounter.at(channel);
-                cdSkipPlayCounter.at(channel) %= cdSkipPlayLength.at(channel);
-            }
-             */
+
+//            if (skipProb.at(channel) < cdSkipProb)
+//            {
+//                std::vector<int> skipLoop;
+//
+//                // read (and start next slice if necessary) before incrementing and wrapping
+//                if (cdSkipPlayCounter.at(channel) == 0)
+//                {
+//                    skipLoop = cdSkipper.at(channel).advanceCtrAndReturn();
+//
+//                    mReadPosition.at(channel) = skipLoop.at(0);
+//                    mChirpReadPosition.at(channel) = skipLoop.at(0);
+//                    cdSkipPlayLength.at(channel) = skipLoop.at(1);
+//
+//                    channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
+//                }
+//                else
+//                {
+//                    channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
+//                }
+//
+//                // chirp
+//                if (cdSkipPlayCounter.at(channel) < 75)
+//                {
+//                    channelData[sample] += mCircularBuffer.readSample(channel, mChirpReadPosition.at(channel));
+//
+//                    mChirpReadPosition.at(channel) += 7;
+//                    mChirpReadPosition.at(channel) = wrap(mChirpReadPosition.at(channel), static_cast<float>(mBentBufferLength));
+//                }
+//
+//                // increment/wrap read position
+//                mReadPosition.at(channel) += mPlaybackRate.at(channel);
+//                mReadPosition.at(channel) = wrap(mReadPosition.at(channel), static_cast<float>(mBentBufferLength));
+//                // increment/wrap skip timing counter
+//                ++cdSkipPlayCounter.at(channel);
+//                cdSkipPlayCounter.at(channel) %= cdSkipPlayLength.at(channel);
+//            }
+
             //================ loops ================
             if (skipProb.at(channel) < randomLoopProb)
             {
