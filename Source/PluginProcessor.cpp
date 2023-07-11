@@ -265,9 +265,7 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     if (codec == 1) // if menu doesn't include GSM, need 2 to work
         muLaw.process(juce::dsp::ProcessContextReplacing<float>(preBrokenBlock));
     else if (codec == 2)
-    {
         gsmProcessor.processBuffer(buffer);
-    }
     
     //======== broken player ========
     brokenPlayer.setAnalogFX(analogFX);
