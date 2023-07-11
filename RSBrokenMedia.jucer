@@ -8,6 +8,31 @@
               pluginCode="Rsbm" aaxIdentifier="com.reillyspitzfaden.RSBrokenMedia"
               cppLanguageStandard="17">
   <MAINGROUP id="e5JMVm" name="RSBrokenMedia">
+    <GROUP id="{9C53C618-AE9D-1752-081E-75A900477894}" name="gsm">
+      <FILE id="Z3c6Dq" name="add.c" compile="1" resource="0" file="Source/gsm/add.c"/>
+      <FILE id="ORv6yK" name="code.c" compile="1" resource="0" file="Source/gsm/code.c"/>
+      <FILE id="xrZTDA" name="config.h" compile="0" resource="0" file="Source/gsm/config.h"/>
+      <FILE id="CJ140h" name="debug.c" compile="1" resource="0" file="Source/gsm/debug.c"/>
+      <FILE id="NltCXT" name="decode.c" compile="1" resource="0" file="Source/gsm/decode.c"/>
+      <FILE id="U4Fph9" name="gsm.h" compile="0" resource="0" file="Source/gsm/gsm.h"/>
+      <FILE id="P4IfJY" name="gsm_create.c" compile="1" resource="0" file="Source/gsm/gsm_create.c"/>
+      <FILE id="pVmKch" name="gsm_decode.c" compile="1" resource="0" file="Source/gsm/gsm_decode.c"/>
+      <FILE id="c7PAwq" name="gsm_destroy.c" compile="1" resource="0" file="Source/gsm/gsm_destroy.c"/>
+      <FILE id="Qrp8bS" name="gsm_encode.c" compile="1" resource="0" file="Source/gsm/gsm_encode.c"/>
+      <FILE id="sxo5tq" name="gsm_explode.c" compile="1" resource="0" file="Source/gsm/gsm_explode.c"/>
+      <FILE id="FuEaU5" name="gsm_implode.c" compile="1" resource="0" file="Source/gsm/gsm_implode.c"/>
+      <FILE id="Xt3TvE" name="gsm_option.c" compile="1" resource="0" file="Source/gsm/gsm_option.c"/>
+      <FILE id="dQ5lTb" name="gsm_print.c" compile="1" resource="0" file="Source/gsm/gsm_print.c"/>
+      <FILE id="ckJgfO" name="long_term.c" compile="1" resource="0" file="Source/gsm/long_term.c"/>
+      <FILE id="kKVrec" name="lpc.c" compile="1" resource="0" file="Source/gsm/lpc.c"/>
+      <FILE id="u68lMM" name="preprocess.c" compile="1" resource="0" file="Source/gsm/preprocess.c"/>
+      <FILE id="cWTNMz" name="private.h" compile="0" resource="0" file="Source/gsm/private.h"/>
+      <FILE id="vqAJf8" name="proto.h" compile="0" resource="0" file="Source/gsm/proto.h"/>
+      <FILE id="Cc5ayD" name="rpe.c" compile="1" resource="0" file="Source/gsm/rpe.c"/>
+      <FILE id="QwAwfZ" name="short_term.c" compile="1" resource="0" file="Source/gsm/short_term.c"/>
+      <FILE id="xMgA5k" name="table.c" compile="1" resource="0" file="Source/gsm/table.c"/>
+      <FILE id="wmMuYa" name="unproto.h" compile="0" resource="0" file="Source/gsm/unproto.h"/>
+    </GROUP>
     <GROUP id="{1C84336C-33B1-1D67-09AE-FC65F46837BE}" name="Source">
       <FILE id="DyzCCX" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
