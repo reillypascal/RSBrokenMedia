@@ -176,6 +176,7 @@ void RSBrokenMediaAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     dryWetMixer.prepare(spec);
     
     muLaw.prepare(spec);
+    gsmProcessor.prepare(spec);
     downsampleAndFilter.prepare(spec);
 }
 
@@ -260,6 +261,14 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         downsampleAndFilter.process(juce::dsp::ProcessContextReplacing<float>(preBrokenBlock));
     }
     
+    //======== constant codec processing ========
+    if (codec == 1) // if menu doesn't include GSM, need 2 to work
+        muLaw.process(juce::dsp::ProcessContextReplacing<float>(preBrokenBlock));
+    else if (codec == 2)
+    {
+        gsmProcessor.processBuffer(buffer);
+    }
+    
     //======== broken player ========
     brokenPlayer.setAnalogFX(analogFX);
     brokenPlayer.setDigitalFX(digitalFX);
@@ -281,15 +290,6 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     brokenPlayer.setBufferLength(bufferLength);
     brokenPlayer.newNumRepeats(numRepeats);
     brokenPlayer.processBlock(buffer, midiMessages);
-        
-    //======== constant codec processing ========
-    juce::dsp::AudioBlock<float> postBrokenBlock { buffer };
-    if (codec == 1) // if menu doesn't include GSM, need 2 to work
-        muLaw.process(juce::dsp::ProcessContextReplacing<float>(postBrokenBlock));
-    else if (codec == 2)
-    {
-        // gsm processing
-    }
     
     //======== mix in wet ========
     dryWetMixer.mixWetSamples(juce::dsp::AudioBlock<float> {buffer});

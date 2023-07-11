@@ -88,6 +88,7 @@ private:
     juce::dsp::DryWetMixer<float> dryWetMixer;
     
     MuLaw muLaw;
+    GSMProcessor gsmProcessor;
     
     DownsampleAndFilter downsampleAndFilter;
     

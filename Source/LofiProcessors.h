@@ -11,6 +11,15 @@
 #include <JuceHeader.h>
 #include "Modulators.h"
 
+// gsm files (in C)
+extern "C" {
+#include "gsm/config.h"
+#include "gsm/gsm.h"
+#include "gsm/private.h"
+#include "gsm/proto.h"
+#include "gsm/unproto.h"
+}
+
 class Bitcrusher : public juce::dsp::ProcessorBase
 {
 public:
@@ -56,6 +65,34 @@ private:
     int sampleRate = 44100;
     
     float mOutScale = 1.0f/32767.0f;
+};
+
+//==============================================================================
+class GSMProcessor : public juce::dsp::ProcessorBase
+{
+public:
+    GSMProcessor() = default;
+    
+    ~GSMProcessor() = default;
+    
+    void prepare(const juce::dsp::ProcessSpec& spec) override;
+    
+    void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
+    
+    void processBuffer(juce::AudioBuffer<float>& buffer);
+    
+    void reset() override;
+    
+private:
+    gsm encode = gsm_create();
+    gsm decode = gsm_create();
+    gsm_signal* gsmSignalInput = new gsm_signal[160];
+    gsm_signal* gsmSignal = new gsm_signal[160];
+    gsm_signal* gsmSignalOutput = new gsm_signal[160];
+    gsm_frame gsmFrame;
+    int gsmSignalCounter = 0;
+    
+    int sampleRate = 44100;
 };
 
 //==============================================================================
