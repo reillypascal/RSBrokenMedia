@@ -73,7 +73,7 @@ class GSMProcessor : public juce::dsp::ProcessorBase
 public:
     GSMProcessor() = default;
     
-    ~GSMProcessor() = default;
+    ~GSMProcessor();
     
     void prepare(const juce::dsp::ProcessSpec& spec) override;
     

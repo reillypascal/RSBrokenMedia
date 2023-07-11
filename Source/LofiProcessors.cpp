@@ -172,6 +172,18 @@ inline short MuLaw::MuLaw2Lin(uint8_t u_val)
 }
 
 //==============================================================================
+GSMProcessor::~GSMProcessor()
+{
+    gsmSignalInput = nullptr;
+    gsmSignal = nullptr;
+    gsmSignalOutput = nullptr;
+    delete[] gsmSignalInput;
+    delete[] gsmSignal;
+    delete[] gsmSignalOutput;
+    gsm_destroy(encode);
+    gsm_destroy(decode);
+}
+
 void GSMProcessor::prepare(const juce::dsp::ProcessSpec& spec)
 {
     sampleRate = spec.sampleRate;
@@ -198,33 +210,36 @@ void GSMProcessor::processBuffer(juce::AudioBuffer<float>& buffer)
     
     for (int sample = 0; sample < numSamples; ++sample)
     {
-        gsmSignalInput[gsmSignalCounter] = static_cast<gsm_signal>(src[sample] * 4096.0f);
-
-        // signal is stored in *highest* 13 bits; lowest 3 are zeroes
-        // shift operators not *supposed* to work on neg, but maybe this works bc encoding is unique
-        gsmSignalInput[gsmSignalCounter] <<= 3;
-        gsmSignalInput[gsmSignalCounter] &= 0b1111111111111000;
-
-        // update counter
-        ++gsmSignalCounter;
-        gsmSignalCounter %= 160;
-
-        // gsm signal block into encoder/decoder
-        if (gsmSignalCounter == 0)
+        if (gsmSignalInput != nullptr && gsmSignal != nullptr && gsmSignalOutput != nullptr)
         {
-            gsmSignal = gsmSignalInput;
-            gsm_encode(encode, gsmSignal, gsmFrame);
-            gsm_decode(decode, gsmFrame, gsmSignal);
-            gsmSignalOutput = gsmSignal;
-        }
-        
-        for (int channel = 0; channel < numChannels; ++channel)
-        {
-            auto* dst = buffer.getWritePointer(channel);
-            // signals to output
-            gsmSignalOutput[gsmSignalCounter] >>= 3;
+            gsmSignalInput[gsmSignalCounter] = static_cast<gsm_signal>(src[sample] * 4096.0f);
             
-            dst[sample] = static_cast<float>(gsmSignalOutput[gsmSignalCounter]) / 4096.0f;
+            // signal is stored in *highest* 13 bits; lowest 3 are zeroes
+            // shift operators not *supposed* to work on neg, but maybe this works bc encoding is unique
+            gsmSignalInput[gsmSignalCounter] <<= 3;
+            gsmSignalInput[gsmSignalCounter] &= 0b1111111111111000;
+            
+            // update counter
+            ++gsmSignalCounter;
+            gsmSignalCounter %= 160;
+            
+            // gsm signal block into encoder/decoder
+            if (gsmSignalCounter == 0)
+            {
+                gsmSignal = gsmSignalInput;
+                gsm_encode(encode, gsmSignal, gsmFrame);
+                gsm_decode(decode, gsmFrame, gsmSignal);
+                gsmSignalOutput = gsmSignal;
+            }
+            
+            for (int channel = 0; channel < numChannels; ++channel)
+            {
+                auto* dst = buffer.getWritePointer(channel);
+                // signals to output
+                gsmSignalOutput[gsmSignalCounter] >>= 3;
+                
+                dst[sample] = static_cast<float>(gsmSignalOutput[gsmSignalCounter]) / 4096.0f;
+            }
         }
     }
 }
