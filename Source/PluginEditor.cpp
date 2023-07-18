@@ -115,9 +115,11 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     addAndMakeVisible(downsamplingMenu);
     downsamplingMenu.addItem("Downsamp:", none);
     downsamplingMenu.addItem("x2", x2);
+    downsamplingMenu.addItem("x3", x3);
     downsamplingMenu.addItem("x4", x4);
+    downsamplingMenu.addItem("x5", x5);
+    downsamplingMenu.addItem("x6", x6);
     downsamplingMenu.addItem("x8", x8);
-    downsamplingMenu.addItem("x16", x16);
     downsamplingMenu.setSelectedId(none);
     downsamplingMenu.setTextWhenNothingSelected("Downsamp:");
     downsamplingMenu.setJustificationType(juce::Justification::centred);

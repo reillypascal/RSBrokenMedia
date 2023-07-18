@@ -93,6 +93,15 @@ private:
     int gsmSignalCounter = 0;
     
     int sampleRate = 44100;
+    
+    int downsamplingAmt = 5;
+    
+    juce::dsp::IIR::Filter<float> preFilter1;
+    juce::dsp::IIR::Filter<float> preFilter2;
+    juce::dsp::IIR::Filter<float> preFilter3;
+    juce::dsp::IIR::Filter<float> preFilter4;
+    
+    juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> filterCoefficientsArray;
 };
 
 //==============================================================================
@@ -107,6 +116,8 @@ public:
     
     void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
     
+    void processBuffer(juce::AudioBuffer<float>& buffer);
+    
     void reset() override;
     
     void setDownsampling(int newDownsampling);
@@ -117,16 +128,16 @@ private:
     float cutoff = 4410;
     
     std::vector<Line<float>> resamplingRamps { Line<float>(), Line<float>() };
+        
+    std::vector<juce::dsp::IIR::Filter<float>> preFilter1;
+    std::vector<juce::dsp::IIR::Filter<float>> preFilter2;
+    std::vector<juce::dsp::IIR::Filter<float>> preFilter3;
+    std::vector<juce::dsp::IIR::Filter<float>> preFilter4;
     
-    juce::dsp::IIR::Filter<float> preFilter1;
-    juce::dsp::IIR::Filter<float> preFilter2;
-    juce::dsp::IIR::Filter<float> preFilter3;
-    juce::dsp::IIR::Filter<float> preFilter4;
-    
-    juce::dsp::IIR::Filter<float> postFilter1;
-    juce::dsp::IIR::Filter<float> postFilter2;
-    juce::dsp::IIR::Filter<float> postFilter3;
-    juce::dsp::IIR::Filter<float> postFilter4;
+    std::vector<juce::dsp::IIR::Filter<float>> postFilter1;
+    std::vector<juce::dsp::IIR::Filter<float>> postFilter2;
+    std::vector<juce::dsp::IIR::Filter<float>> postFilter3;
+    std::vector<juce::dsp::IIR::Filter<float>> postFilter4;
     
     juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> filterCoefficientsArray;
 };
