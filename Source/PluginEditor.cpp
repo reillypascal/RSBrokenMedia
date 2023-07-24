@@ -104,23 +104,25 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     
     // menus
     addAndMakeVisible(codecModeMenu);
-    codecModeMenu.addItem("Codec:", normal);
-    codecModeMenu.addItem("Mu-Law", mulaw);
-    codecModeMenu.addItem("GSM 06.10", gsm610);
-    codecModeMenu.setSelectedId(normal);
+    using enum CodecModes;
+    codecModeMenu.addItem("Codec:", static_cast<int>(normal));
+    codecModeMenu.addItem("Mu-Law", static_cast<int>(mulaw));
+    codecModeMenu.addItem("GSM 06.10", static_cast<int>(gsm610));
+    codecModeMenu.setSelectedId(static_cast<int>(normal));
     codecModeMenu.setTextWhenNothingSelected("Codec:");
     codecModeMenu.setJustificationType(juce::Justification::centred);
     codecModeMenuAttachment.reset(new ComboBoxAttachment(valueTreeState, "codec", codecModeMenu));
     
     addAndMakeVisible(downsamplingMenu);
-    downsamplingMenu.addItem("Downsamp:", none);
-    downsamplingMenu.addItem("x2", x2);
-    downsamplingMenu.addItem("x3", x3);
-    downsamplingMenu.addItem("x4", x4);
-    downsamplingMenu.addItem("x5", x5);
-    downsamplingMenu.addItem("x6", x6);
-    downsamplingMenu.addItem("x8", x8);
-    downsamplingMenu.setSelectedId(none);
+    using enum DownsamplingModes;
+    downsamplingMenu.addItem("Downsamp:", static_cast<int>(none));
+    downsamplingMenu.addItem("x2", static_cast<int>(x2));
+    downsamplingMenu.addItem("x3", static_cast<int>(x3));
+    downsamplingMenu.addItem("x4", static_cast<int>(x4));
+    downsamplingMenu.addItem("x5", static_cast<int>(x5));
+    downsamplingMenu.addItem("x6", static_cast<int>(x6));
+    downsamplingMenu.addItem("x8", static_cast<int>(x8));
+    downsamplingMenu.setSelectedId(static_cast<int>(none));
     downsamplingMenu.setTextWhenNothingSelected("Downsamp:");
     downsamplingMenu.setJustificationType(juce::Justification::centred);
     downsamplingMenuAttachment.reset(new ComboBoxAttachment(valueTreeState, "downsampling", downsamplingMenu));

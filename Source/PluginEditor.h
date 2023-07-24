@@ -83,13 +83,14 @@ private:
     
     juce::ComboBox codecModeMenu;
     juce::ComboBox downsamplingMenu;
-    enum codecModes
+    
+    enum class CodecModes
     {
         normal = 1,
         mulaw,
         gsm610
     };
-    enum downsamplingModes
+    enum class DownsamplingModes
     {
         none = 1,
         x2,
