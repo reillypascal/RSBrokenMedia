@@ -207,6 +207,23 @@ void GSMProcessor::prepare(const juce::dsp::ProcessSpec& spec)
     preFilter4.prepare(spec);
     preFilter4.coefficients = filterCoefficientsArray.getObjectPointer(3);
     
+    // post filters
+    postFilter1.reset();
+    postFilter1.prepare(spec);
+    postFilter1.coefficients = filterCoefficientsArray.getObjectPointer(0);
+    
+    postFilter2.reset();
+    postFilter2.prepare(spec);
+    postFilter2.coefficients = filterCoefficientsArray.getObjectPointer(1);
+    
+    postFilter3.reset();
+    postFilter3.prepare(spec);
+    postFilter3.coefficients = filterCoefficientsArray.getObjectPointer(2);
+    
+    postFilter4.reset();
+    postFilter4.prepare(spec);
+    postFilter4.coefficients = filterCoefficientsArray.getObjectPointer(3);
+    
     reset();
 }
 
@@ -230,45 +247,69 @@ void GSMProcessor::processBuffer(juce::AudioBuffer<float>& buffer)
     
     for (int sample = 0; sample < numSamples; ++sample)
     {
-//        // resampling filter
-//        src[sample] = preFilter1.processSample(src[sample]);
-//        preFilter1.snapToZero();
-//        src[sample] = preFilter2.processSample(src[sample]);
-//        preFilter2.snapToZero();
-//        src[sample] = preFilter3.processSample(src[sample]);
-//        preFilter3.snapToZero();
-//        src[sample] = preFilter4.processSample(src[sample]);
-//        preFilter4.snapToZero();
+        // resampling filter
+        src[sample] = preFilter1.processSample(src[sample]);
+        preFilter1.snapToZero();
+        src[sample] = preFilter2.processSample(src[sample]);
+        preFilter2.snapToZero();
+        src[sample] = preFilter3.processSample(src[sample]);
+        preFilter3.snapToZero();
+        src[sample] = preFilter4.processSample(src[sample]);
+        preFilter4.snapToZero();
         
         if (gsmSignalInput != nullptr && gsmSignal != nullptr && gsmSignalOutput != nullptr)
         {
-            gsmSignalInput[gsmSignalCounter] = static_cast<gsm_signal>(src[sample] * 4096.0f);
-            
-            // signal is stored in *highest* 13 bits; lowest 3 are zeroes
-            // shift operators not *supposed* to work on neg, but maybe this works bc encoding is unique
-            gsmSignalInput[gsmSignalCounter] <<= 3;
-            gsmSignalInput[gsmSignalCounter] &= 0b1111111111111000;
-            
-            // update counter
-            ++gsmSignalCounter;
-            gsmSignalCounter %= 160;
-            
-            // gsm signal block into encoder/decoder
-            if (gsmSignalCounter == 0)
+            float currentSample { 0.0f };
+            if (downsamplingCounter == 0)
             {
-                gsmSignal = gsmSignalInput;
-                gsm_encode(encode, gsmSignal, gsmFrame);
-                gsm_decode(decode, gsmFrame, gsmSignal);
-                gsmSignalOutput = gsmSignal;
+                gsmSignalInput[gsmSignalCounter] = static_cast<gsm_signal>(src[sample] * 4096.0f);
+                
+                // signal is stored in *highest* 13 bits; lowest 3 are zeroes
+                // shift operators not *supposed* to work on neg, but maybe this works bc encoding is unique
+                gsmSignalInput[gsmSignalCounter] <<= 3;
+                gsmSignalInput[gsmSignalCounter] &= 0b1111111111111000;
+                
+                // update counter
+                ++gsmSignalCounter;
+                gsmSignalCounter %= 160;
+                
+                // gsm signal block into encoder/decoder
+                if (gsmSignalCounter == 0)
+                {
+                    gsmSignal = gsmSignalInput;
+                    gsm_encode(encode, gsmSignal, gsmFrame);
+                    gsm_decode(decode, gsmFrame, gsmSignal);
+                    gsmSignalOutput = gsmSignal;
+                }
+                
+                // signals to output
+                gsmSignalOutput[gsmSignalCounter] >>= 3;
+                currentSample = static_cast<float>(gsmSignalOutput[gsmSignalCounter]) / 4096.0f;
             }
+            
+            ++downsamplingCounter;
+            if (downsamplingAmt != 0)
+                downsamplingCounter %= downsamplingAmt;
+            else
+                downsamplingCounter = 0;
+            
+            currentSample = postFilter1.processSample(currentSample);
+            postFilter1.snapToZero();
+            currentSample = postFilter2.processSample(currentSample);
+            postFilter2.snapToZero();
+            currentSample = postFilter3.processSample(currentSample);
+            postFilter3.snapToZero();
+            currentSample = postFilter4.processSample(currentSample);
+            postFilter4.snapToZero();
+            
+            std::vector<float> downsamplingGainComp { 1.0f, 1.0f, 1.45f, 2.35f, 3.5f, 4.35f, 5.5f, 6.25f, 7.0f };
+            currentSample *= downsamplingGainComp[downsamplingAmt];
             
             for (int channel = 0; channel < numChannels; ++channel)
             {
                 auto* dst = buffer.getWritePointer(channel);
                 // signals to output
-                gsmSignalOutput[gsmSignalCounter] >>= 3;
-                
-                dst[sample] = static_cast<float>(gsmSignalOutput[gsmSignalCounter]) / 4096.0f;
+                dst[sample] = currentSample;
             }
         }
     }
@@ -276,6 +317,45 @@ void GSMProcessor::processBuffer(juce::AudioBuffer<float>& buffer)
 
 void GSMProcessor::reset()
 {
+}
+
+void GSMProcessor::setDownsampling(int newDownsampling)
+{
+    downsamplingAmt = newDownsampling;
+    
+    if (downsamplingAmt != prevDownsamplingAmt)
+    {
+        prevDownsamplingAmt = downsamplingAmt;
+        
+        // pre filters
+        preFilter1.reset();
+        preFilter2.reset();
+        preFilter3.reset();
+        preFilter4.reset();
+        
+        // post filters
+        postFilter1.reset();
+        postFilter2.reset();
+        postFilter3.reset();
+        postFilter4.reset();
+        
+        if (downsamplingAmt != 0)
+            filterCoefficientsArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod((sampleRate / downsamplingAmt) * 0.4, sampleRate, 8);
+        else
+            filterCoefficientsArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(sampleRate * 0.4, sampleRate, 8);
+        
+        // pre filters
+        preFilter1.coefficients = filterCoefficientsArray.getObjectPointer(0);
+        preFilter2.coefficients = filterCoefficientsArray.getObjectPointer(1);
+        preFilter3.coefficients = filterCoefficientsArray.getObjectPointer(2);
+        preFilter4.coefficients = filterCoefficientsArray.getObjectPointer(3);
+        
+        // post filters
+        postFilter1.coefficients = filterCoefficientsArray.getObjectPointer(0);
+        postFilter2.coefficients = filterCoefficientsArray.getObjectPointer(1);
+        postFilter3.coefficients = filterCoefficientsArray.getObjectPointer(2);
+        postFilter4.coefficients = filterCoefficientsArray.getObjectPointer(3);
+    }
 }
 
 //==============================================================================
@@ -318,6 +398,9 @@ void DownsampleAndFilter::prepare(const juce::dsp::ProcessSpec& spec)
         line.setParameters(downsampling);
     });
     
+    preFilter1L.prepare(spec);
+    preFilter1R.prepare(spec);
+    
     reset();
 }
 
@@ -339,7 +422,17 @@ void DownsampleAndFilter::process(const juce::dsp::ProcessContextReplacing<float
         auto* dst = outBlock.getChannelPointer(channel);
         
 //        juce::dsp::AudioBlock<float> channelBlock = outBlock.getSingleChannelBlock(channel);
-//
+
+//        if (channel == 0)
+//        {
+//            preFilter1L.process(juce::dsp::ProcessContextReplacing<float> { channelBlock });
+//            preFilter1L.snapToZero();
+//        }
+//        else
+//        {
+//            preFilter1R.process(juce::dsp::ProcessContextReplacing<float> { channelBlock });
+//            preFilter1R.snapToZero();
+//        }
 //        preFilter1[channel].process(juce::dsp::ProcessContextReplacing<float> { channelBlock });
 //        preFilter1[channel].snapToZero();
 //        preFilter2[channel].process(juce::dsp::ProcessContextReplacing<float> { channelBlock });
@@ -364,7 +457,10 @@ void DownsampleAndFilter::process(const juce::dsp::ProcessContextReplacing<float
             
             if (downsampling > 1)
             {
-//                if (sample % downsampling != 0) dst[sample] = dst[sample - (sample % downsampling)];
+//                float currentSample { 0.0f };
+//                if (sample % downsampling == 0) currentSample = dst[sample];
+//                dst[sample] = currentSample;
+                
                 resamplingRamps.at(channel).setDestination(src[sample]);
                 dst[sample] = resamplingRamps.at(channel).renderAudioOutput();
             }
@@ -380,51 +476,69 @@ void DownsampleAndFilter::process(const juce::dsp::ProcessContextReplacing<float
 //            postFilter4[channel].snapToZero();
              
         }
+        
+//        postFilter1[channel].process(juce::dsp::ProcessContextReplacing<float> { channelBlock });
+//        postFilter1[channel].snapToZero();
+//        postFilter2[channel].process(juce::dsp::ProcessContextReplacing<float> { channelBlock });
+//        postFilter2[channel].snapToZero();
+//        postFilter3[channel].process(juce::dsp::ProcessContextReplacing<float> { channelBlock });
+//        postFilter3[channel].snapToZero();
+//        postFilter4[channel].process(juce::dsp::ProcessContextReplacing<float> { channelBlock });
+//        postFilter4[channel].snapToZero();
     }
 }
 
-//void DownsampleAndFilter::processBuffer(juce::AudioBuffer<float>& buffer)
-//{
-//    auto numSamples = buffer.getNumSamples();
-//    auto numChannels = buffer.getNumChannels();
-//
-//    for (auto channel = 0; channel < numChannels; ++channel)
-//    {
-//        auto* channelData = buffer.getWritePointer(channel);
-//
-//        for (auto sample = 0; sample < numSamples; ++sample)
-//        {
-//            // pre-downsampling filters
-//            channelData[sample] = preFilter1[channel].processSample(channelData[sample]);
-//            preFilter1[channel].snapToZero();
-//            channelData[sample] = preFilter2[channel].processSample(channelData[sample]);
-//            preFilter2[channel].snapToZero();
-//            channelData[sample] = preFilter3[channel].processSample(channelData[sample]);
-//            preFilter3[channel].snapToZero();
-//            channelData[sample] = preFilter4[channel].processSample(channelData[sample]);
-//            preFilter4[channel].snapToZero();
-//
-//            if (downsampling > 1)
-//            {
+void DownsampleAndFilter::processBuffer(juce::AudioBuffer<float>& buffer)
+{
+    auto numSamples = buffer.getNumSamples();
+    auto numChannels = buffer.getNumChannels();
+
+    for (auto channel = 0; channel < numChannels; ++channel)
+    {
+        auto* channelData = buffer.getWritePointer(channel);
+
+        for (auto sample = 0; sample < numSamples; ++sample)
+        {
+            // pre-downsampling filters
+            channelData[sample] = preFilter1[channel].processSample(channelData[sample]);
+            preFilter1[channel].snapToZero();
+            channelData[sample] = preFilter2[channel].processSample(channelData[sample]);
+            preFilter2[channel].snapToZero();
+            channelData[sample] = preFilter3[channel].processSample(channelData[sample]);
+            preFilter3[channel].snapToZero();
+            channelData[sample] = preFilter4[channel].processSample(channelData[sample]);
+            preFilter4[channel].snapToZero();
+
+            if (downsampling > 1)
+            {
 //                if (sample % downsampling != 0) channelData[sample] = channelData[sample - (sample % downsampling)];
-//            }
-//
-//            // post-downsampling images filters
-//            channelData[sample] = postFilter1[channel].processSample(channelData[sample]);
-//            postFilter1[channel].snapToZero();
-//            channelData[sample] = postFilter2[channel].processSample(channelData[sample]);
-//            postFilter2[channel].snapToZero();
-//            channelData[sample] = postFilter3[channel].processSample(channelData[sample]);
-//            postFilter3[channel].snapToZero();
-//            channelData[sample] = postFilter4[channel].processSample(channelData[sample]);
-//            postFilter4[channel].snapToZero();
-//        }
-//    }
-//}
+                float currentSample { 0.0 };
+                if (sample % downsampling == 0) currentSample = channelData[sample];
+                else channelData[sample] = currentSample;
+            }
+
+            // post-downsampling images filters
+            channelData[sample] = postFilter1[channel].processSample(channelData[sample]);
+            postFilter1[channel].snapToZero();
+            channelData[sample] = postFilter2[channel].processSample(channelData[sample]);
+            postFilter2[channel].snapToZero();
+            channelData[sample] = postFilter3[channel].processSample(channelData[sample]);
+            postFilter3[channel].snapToZero();
+            channelData[sample] = postFilter4[channel].processSample(channelData[sample]);
+            postFilter4[channel].snapToZero();
+        }
+    }
+}
 
 void DownsampleAndFilter::reset()
 {
     filterCoefficientsArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(cutoff, sampleRate, 8);
+    
+    preFilter1L.reset();
+    preFilter1R.reset();
+    
+    preFilter1L.coefficients = filterCoefficientsArray.getObjectPointer(0);
+    preFilter1R.coefficients = filterCoefficientsArray.getObjectPointer(0);
     
     // input
     for (auto& ch : preFilter1)
@@ -475,8 +589,8 @@ void DownsampleAndFilter::setDownsampling(int newDownsampling)
 {
     if (newDownsampling <= 0)
         downsampling = 1;
-//    else if ( ceil(log2(newDownsampling)) == floor(log2(newDownsampling)) ) // x is pwr of 2 when log2(x) == int
-//        downsampling = newDownsampling;
+    else if ((newDownsampling % 2) == 0) // x is pwr of 2 when log2(x) == int
+        downsampling = newDownsampling;
     else
         downsampling = 1;
     

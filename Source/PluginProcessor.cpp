@@ -73,7 +73,7 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     0),
         std::make_unique<juce::AudioParameterChoice>(juce::ParameterID { "downsampling", 1 },
                                                     "Downsampling Menu",
-                                                     juce::StringArray { "None", "x2", "x3", "x4", "x5", "x6", "x8" },
+                                                     juce::StringArray { "None", "x2", "x4", "x6", "x8", "x10", "x12" },
                                                     0)
 })
 {
@@ -239,7 +239,8 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     int numRepeats = static_cast<int>(*repeatsParameter);
     float dryWetMix = static_cast<float>(*dryWetMixParameter);
     
-    int downsampling = static_cast<int>(*downsamplingMenuParameter);
+    int downsamplingIndex = static_cast<int>(*downsamplingMenuParameter);
+    std::vector<int> downsamplingAmts { 0, 2, 3, 4, 5, 6, 8 };
     int codec = static_cast<int>(*codecMenuParameter);
     
     // ======== mix in dry ========
@@ -248,29 +249,21 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     
     //======== constant downsampling ========
     juce::dsp::AudioBlock<float> preBrokenBlock { buffer };
-    if (downsampling != 0)
+    if (downsamplingIndex != 0 && codec != 2)
     {
-        if (downsampling == 1)
-            downsampleAndFilter.setDownsampling(2);
-        else if (downsampling == 2)
-            downsampleAndFilter.setDownsampling(3);
-        else if (downsampling == 3)
-            downsampleAndFilter.setDownsampling(4);
-        else if (downsampling == 4)
-            downsampleAndFilter.setDownsampling(5);
-        else if (downsampling == 5)
-            downsampleAndFilter.setDownsampling(6);
-        else if (downsampling == 6)
-            downsampleAndFilter.setDownsampling(8);
-        
+        downsampleAndFilter.setDownsampling(downsamplingAmts[downsamplingIndex]);
         downsampleAndFilter.process(juce::dsp::ProcessContextReplacing<float>(preBrokenBlock));
+        //downsampleAndFilter.processBuffer(buffer);
     }
     
     //======== constant codec processing ========
     if (codec == 1) // if menu doesn't include GSM, need 2 to work
         muLaw.process(juce::dsp::ProcessContextReplacing<float>(preBrokenBlock));
     else if (codec == 2)
+    {
+        gsmProcessor.setDownsampling(downsamplingAmts[downsamplingIndex]);
         gsmProcessor.processBuffer(buffer);
+    }
     
     //======== broken player ========
     brokenPlayer.setAnalogFX(analogFX);

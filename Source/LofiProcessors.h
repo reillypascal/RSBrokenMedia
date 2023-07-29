@@ -83,6 +83,8 @@ public:
     
     void reset() override;
     
+    void setDownsampling(int newDownsampling);
+    
 private:
     gsm encode = gsm_create();
     gsm decode = gsm_create();
@@ -90,16 +92,23 @@ private:
     gsm_signal* gsmSignal = new gsm_signal[160];
     gsm_signal* gsmSignalOutput = new gsm_signal[160];
     gsm_frame gsmFrame;
-    int gsmSignalCounter = 0;
+    int gsmSignalCounter { 0 };
     
     int sampleRate = 44100;
     
-    int downsamplingAmt = 5;
+    int downsamplingAmt { 4 };
+    int prevDownsamplingAmt { 0 };
+    int downsamplingCounter { 0 };
     
     juce::dsp::IIR::Filter<float> preFilter1;
     juce::dsp::IIR::Filter<float> preFilter2;
     juce::dsp::IIR::Filter<float> preFilter3;
     juce::dsp::IIR::Filter<float> preFilter4;
+    
+    juce::dsp::IIR::Filter<float> postFilter1;
+    juce::dsp::IIR::Filter<float> postFilter2;
+    juce::dsp::IIR::Filter<float> postFilter3;
+    juce::dsp::IIR::Filter<float> postFilter4;
     
     juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> filterCoefficientsArray;
 };
@@ -128,7 +137,10 @@ private:
     float cutoff = 4410;
     
     std::vector<Line<float>> resamplingRamps { Line<float>(), Line<float>() };
-        
+    
+    using IIR = juce::dsp::IIR::Filter<float>;
+    IIR preFilter1L;
+    IIR preFilter1R;
     std::vector<juce::dsp::IIR::Filter<float>> preFilter1;
     std::vector<juce::dsp::IIR::Filter<float>> preFilter2;
     std::vector<juce::dsp::IIR::Filter<float>> preFilter3;
