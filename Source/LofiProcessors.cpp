@@ -401,6 +401,9 @@ void DownsampleAndFilter::prepare(const juce::dsp::ProcessSpec& spec)
     preFilter1L.prepare(spec);
     preFilter1R.prepare(spec);
     
+    downsamplingCounter.resize(numChannels, 0);
+    currentSample.resize(numChannels, 0.0f);
+    
     reset();
 }
 
@@ -445,35 +448,41 @@ void DownsampleAndFilter::process(const juce::dsp::ProcessContextReplacing<float
         
         for (auto sample = 0; sample < numSamples; ++sample)
         {
-//            // pre-downsampling filters
-//            dst[sample] = preFilter1[channel].processSample(src[sample]);
-//            preFilter1[channel].snapToZero();
-//            dst[sample] = preFilter2[channel].processSample(dst[sample]);
-//            preFilter2[channel].snapToZero();
-//            dst[sample] = preFilter3[channel].processSample(dst[sample]);
-//            preFilter3[channel].snapToZero();
-//            dst[sample] = preFilter4[channel].processSample(dst[sample]);
-//            preFilter4[channel].snapToZero();
+            // pre-downsampling filters
+            dst[sample] = preFilter1[channel].processSample(src[sample]);
+            preFilter1[channel].snapToZero();
+            dst[sample] = preFilter2[channel].processSample(dst[sample]);
+            preFilter2[channel].snapToZero();
+            dst[sample] = preFilter3[channel].processSample(dst[sample]);
+            preFilter3[channel].snapToZero();
+            dst[sample] = preFilter4[channel].processSample(dst[sample]);
+            preFilter4[channel].snapToZero();
             
             if (downsampling > 1)
             {
-//                float currentSample { 0.0f };
-//                if (sample % downsampling == 0) currentSample = dst[sample];
-//                dst[sample] = currentSample;
+                if (downsamplingCounter[channel] == 0)
+                    currentSample[channel] = dst[sample];
+                dst[sample] = currentSample[channel];
                 
-                resamplingRamps.at(channel).setDestination(src[sample]);
-                dst[sample] = resamplingRamps.at(channel).renderAudioOutput();
+                ++downsamplingCounter[channel];
+                if (downsampling != 0)
+                    downsamplingCounter[channel] %= downsampling;
+                else
+                    downsamplingCounter[channel] = 0;
+                
+//                resamplingRamps.at(channel).setDestination(src[sample]);
+//                dst[sample] = resamplingRamps.at(channel).renderAudioOutput();
             }
 
-//            // post-downsampling images filters
-//            dst[sample] = postFilter1[channel].processSample(dst[sample]);
-//            postFilter1[channel].snapToZero();
-//            dst[sample] = postFilter2[channel].processSample(dst[sample]);
-//            postFilter2[channel].snapToZero();
-//            dst[sample] = postFilter3[channel].processSample(dst[sample]);
-//            postFilter3[channel].snapToZero();
-//            dst[sample] = postFilter4[channel].processSample(dst[sample]);
-//            postFilter4[channel].snapToZero();
+            // post-downsampling images filters
+            dst[sample] = postFilter1[channel].processSample(dst[sample]);
+            postFilter1[channel].snapToZero();
+            dst[sample] = postFilter2[channel].processSample(dst[sample]);
+            postFilter2[channel].snapToZero();
+            dst[sample] = postFilter3[channel].processSample(dst[sample]);
+            postFilter3[channel].snapToZero();
+            dst[sample] = postFilter4[channel].processSample(dst[sample]);
+            postFilter4[channel].snapToZero();
              
         }
         
@@ -600,7 +609,55 @@ void DownsampleAndFilter::setDownsampling(int newDownsampling)
                       resamplingRamps.end(),
                       [this](Line<float>& line) { line.setParameters(downsampling); });
     
-    reset();
+    if (downsampling != prevDownsampling)
+    {
+        prevDownsampling = downsampling;
+        filterCoefficientsArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(cutoff, sampleRate, 8);
+        
+        // input
+        for (auto& ch : preFilter1)
+        {
+            ch.reset();
+            ch.coefficients = filterCoefficientsArray.getObjectPointer(0);
+        }
+        for (auto& ch : preFilter2)
+        {
+            ch.reset();
+            ch.coefficients = filterCoefficientsArray.getObjectPointer(1);
+        }
+        for (auto& ch : preFilter3)
+        {
+            ch.reset();
+            ch.coefficients = filterCoefficientsArray.getObjectPointer(2);
+        }
+        for (auto& ch : preFilter4)
+        {
+            ch.reset();
+            ch.coefficients = filterCoefficientsArray.getObjectPointer(3);
+        }
+        
+        // output
+        for (auto& ch : postFilter1)
+        {
+            ch.reset();
+            ch.coefficients = filterCoefficientsArray.getObjectPointer(0);
+        }
+        for (auto& ch : postFilter2)
+        {
+            ch.reset();
+            ch.coefficients = filterCoefficientsArray.getObjectPointer(1);
+        }
+        for (auto& ch : postFilter3)
+        {
+            ch.reset();
+            ch.coefficients = filterCoefficientsArray.getObjectPointer(2);
+        }
+        for (auto& ch : postFilter4)
+        {
+            ch.reset();
+            ch.coefficients = filterCoefficientsArray.getObjectPointer(3);
+        }
+    }
 }
 
 

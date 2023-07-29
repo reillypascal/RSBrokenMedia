@@ -132,9 +132,13 @@ public:
     void setDownsampling(int newDownsampling);
     
 private:
-    int sampleRate = 44100;
-    int downsampling = 2;
-    float cutoff = 4410;
+    int sampleRate { 44100 };
+    int downsampling { 2 };
+    int prevDownsampling { 0 };
+    std::vector<int> downsamplingCounter { 0, 0 };
+    float cutoff { 4410 };
+    
+    std::vector<float> currentSample { 0.0f, 0.0f };
     
     std::vector<Line<float>> resamplingRamps { Line<float>(), Line<float>() };
     
