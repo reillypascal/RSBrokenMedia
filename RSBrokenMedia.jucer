@@ -6,7 +6,7 @@
               bundleIdentifier="com.reillyspitzfaden.RSBrokenMedia" pluginFormats="buildAU,buildVST3"
               pluginManufacturer="Reilly Spitzfaden " pluginManufacturerCode="Rspi"
               pluginCode="Rsbm" aaxIdentifier="com.reillyspitzfaden.RSBrokenMedia"
-              cppLanguageStandard="17">
+              cppLanguageStandard="17" companyName="Reilly Spitzfaden">
   <MAINGROUP id="e5JMVm" name="RSBrokenMedia">
     <GROUP id="{9C53C618-AE9D-1752-081E-75A900477894}" name="gsm">
       <FILE id="Z3c6Dq" name="add.c" compile="1" resource="0" file="Source/gsm/add.c"/>
@@ -80,7 +80,8 @@
         <MODULEPATH id="juce_gui_extra" path="../../../../../../JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraLinkerFlags="-Wl,-weak_reference_mismatches,weak"
+               extraDefs="JUCE_SILENCE_XCODE_15_LINKER_WARNING=1">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="RSBrokenMedia" vst3BinaryLocation="Library/Audio/Plug-Ins/VST3/"
                        auBinaryLocation="Library/Audio/Plug-Ins/Components/" osxArchitecture="64BitIntel"/>

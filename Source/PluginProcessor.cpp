@@ -1,4 +1,5 @@
 /*
+/*
   ==============================================================================
 
     This file contains the basic framework code for a JUCE plugin processor.
@@ -229,19 +230,19 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     std::vector<float> clockNoteValues { 16.0f, 8.0f, 4.0f, 3.0f, 2.0f, 1.5f, 1.0f, 0.75f, 0.5f, 0.25f };
     
     //======== get parameters ========
-    float analogFX = static_cast<float>(*analogFXParameter);
-    float digitalFX = static_cast<float>(*digitalFXParameter);
-    float lofiFX = static_cast<float>(*lofiFXParameter);
+    float analogFX = analogFXParameter->load();
+    float digitalFX = digitalFXParameter->load();
+    float lofiFX = lofiFXParameter->load();
     
-    float clockSpeed = static_cast<float>(*clockSpeedParameter) * (getSampleRate() / 1000);
-    int clockSpeedNoteIndex = static_cast<int>(*clockSpeedNoteParameter);
-    int bufferLength = static_cast<int>(*bufferLengthParameter * 44.1f);
-    int numRepeats = static_cast<int>(*repeatsParameter);
-    float dryWetMix = static_cast<float>(*dryWetMixParameter);
+    float clockSpeed = clockSpeedParameter->load() * (getSampleRate() / 1000);
+    int clockSpeedNoteIndex = clockSpeedNoteParameter->getIndex();
+    int bufferLength = static_cast<int>(bufferLengthParameter->load() * 44.1f); // check menu data type
+    int numRepeats = static_cast<int>(repeatsParameter->load()); // check menu data type
+    float dryWetMix = dryWetMixParameter->load();
     
-    int downsamplingIndex = static_cast<int>(*downsamplingMenuParameter);
+    int downsamplingIndex = downsamplingMenuParameter->getIndex();
     std::vector<int> downsamplingAmts { 0, 2, 3, 4, 5, 6, 8 };
-    int codec = static_cast<int>(*codecMenuParameter);
+    int codec = codecMenuParameter->getIndex();
     
     // ======== mix in dry ========
     dryWetMixer.setWetMixProportion(dryWetMix);

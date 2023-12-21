@@ -94,7 +94,7 @@ private:
     gsm_frame gsmFrame;
     int gsmSignalCounter { 0 };
     
-    int sampleRate = 44100;
+    int sampleRate { 44100 };
     
     int downsamplingAmt { 4 };
     int prevDownsamplingAmt { 0 };
@@ -143,8 +143,8 @@ private:
     std::vector<Line<float>> resamplingRamps { Line<float>(), Line<float>() };
     
     using IIR = juce::dsp::IIR::Filter<float>;
-    IIR preFilter1L;
-    IIR preFilter1R;
+    //IIR preFilter1L;
+    //IIR preFilter1R;
     std::vector<juce::dsp::IIR::Filter<float>> preFilter1;
     std::vector<juce::dsp::IIR::Filter<float>> preFilter2;
     std::vector<juce::dsp::IIR::Filter<float>> preFilter3;

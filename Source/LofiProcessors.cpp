@@ -398,8 +398,8 @@ void DownsampleAndFilter::prepare(const juce::dsp::ProcessSpec& spec)
         line.setParameters(downsampling);
     });
     
-    preFilter1L.prepare(spec);
-    preFilter1R.prepare(spec);
+//    preFilter1L.prepare(spec);
+//    preFilter1R.prepare(spec);
     
     downsamplingCounter.resize(numChannels, 0);
     currentSample.resize(numChannels, 0.0f);
@@ -543,11 +543,11 @@ void DownsampleAndFilter::reset()
 {
     filterCoefficientsArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(cutoff, sampleRate, 8);
     
-    preFilter1L.reset();
-    preFilter1R.reset();
-    
-    preFilter1L.coefficients = filterCoefficientsArray.getObjectPointer(0);
-    preFilter1R.coefficients = filterCoefficientsArray.getObjectPointer(0);
+//    preFilter1L.reset();
+//    preFilter1R.reset();
+//    
+//    preFilter1L.coefficients = filterCoefficientsArray.getObjectPointer(0);
+//    preFilter1R.coefficients = filterCoefficientsArray.getObjectPointer(0);
     
     // input
     for (auto& ch : preFilter1)

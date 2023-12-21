@@ -70,7 +70,7 @@ private:
     std::atomic<float>* lofiFXParameter = nullptr;
     
     std::atomic<float>* clockSpeedParameter = nullptr;
-    juce::AudioParameterChoice* clockSpeedNoteParameter;
+    juce::AudioParameterChoice* clockSpeedNoteParameter = nullptr; // updated to give nullptr
     bool useDawClock = false;
     std::atomic<float>* bufferLengthParameter = nullptr;
     std::atomic<float>* repeatsParameter = nullptr;
