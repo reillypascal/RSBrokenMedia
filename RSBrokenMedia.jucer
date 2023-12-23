@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="ANtIEB" name="RSBrokenMedia" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
-              version="0.2.0" companyWebsite="reillyspitzfaden.netlify.app"
+              version="0.2.1" companyWebsite="reillyspitzfaden.netlify.app"
               bundleIdentifier="com.reillyspitzfaden.RSBrokenMedia" pluginFormats="buildAU,buildVST3"
               pluginManufacturer="Reilly Spitzfaden " pluginManufacturerCode="Rspi"
               pluginCode="Rsbm" aaxIdentifier="com.reillyspitzfaden.RSBrokenMedia"
