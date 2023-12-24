@@ -90,16 +90,16 @@ private:
         mulaw,
         gsm610
     };
-    enum class DownsamplingModes
-    {
-        none = 1,
-        x2,
-        x3,
-        x4,
-        x5,
-        x6,
-        x8
-    };
+//    enum class DownsamplingModes
+//    {
+//        none = 1,
+//        x2,
+//        x3,
+//        x4,
+//        x5,
+//        x6,
+//        x8
+//    };
     
     std::unique_ptr<SliderAttachment> analogFXAttachment;
     std::unique_ptr<SliderAttachment> digitalFXAttachment;

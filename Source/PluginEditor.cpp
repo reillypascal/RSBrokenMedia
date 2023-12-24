@@ -114,15 +114,16 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     codecModeMenuAttachment.reset(new ComboBoxAttachment(valueTreeState, "codec", codecModeMenu));
     
     addAndMakeVisible(downsamplingMenu);
-    using enum DownsamplingModes;
-    downsamplingMenu.addItem("Downsamp:", static_cast<int>(none));
-    downsamplingMenu.addItem("x2", static_cast<int>(x2));
-    downsamplingMenu.addItem("x3", static_cast<int>(x3));
-    downsamplingMenu.addItem("x4", static_cast<int>(x4));
-    downsamplingMenu.addItem("x5", static_cast<int>(x5));
-    downsamplingMenu.addItem("x6", static_cast<int>(x6));
-    downsamplingMenu.addItem("x8", static_cast<int>(x8));
-    downsamplingMenu.setSelectedId(static_cast<int>(none));
+//    using enum DownsamplingModes;
+    downsamplingMenu.addItem("Downsamp:", 1);
+    downsamplingMenu.addItem("x2", 2);
+    downsamplingMenu.addItem("x3", 3);
+    downsamplingMenu.addItem("x4", 4);
+    downsamplingMenu.addItem("x5", 5);
+    downsamplingMenu.addItem("x6", 6);
+    downsamplingMenu.addItem("x7", 7);
+    downsamplingMenu.addItem("x8", 8);
+    downsamplingMenu.setSelectedId(1);
     downsamplingMenu.setTextWhenNothingSelected("Downsamp:");
     downsamplingMenu.setJustificationType(juce::Justification::centred);
     downsamplingMenuAttachment.reset(new ComboBoxAttachment(valueTreeState, "downsampling", downsamplingMenu));
@@ -149,7 +150,7 @@ void RSBrokenMediaAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText ("RS Broken Media", 25, 10, 350, 45, juce::Justification::left, 1);
     // info
     g.setFont (juce::Font("Verdana", 16.0f, juce::Font::plain));
-    g.drawFittedText ("Version 0.2.1\n reillyspitzfaden.netlify.app", getWidth() - 375, 15, 350, 45, juce::Justification::right, 2);
+    g.drawFittedText ("Version 0.3.0\n reillyspitzfaden.netlify.app", getWidth() - 375, 15, 350, 45, juce::Justification::right, 2);
     
     // panels
     // tried 93,107,128 (outlive max patch)

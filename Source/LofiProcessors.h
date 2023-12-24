@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "Modulators.h"
+#include "Utilities.h"
 
 // gsm files (in C)
 extern "C" {
@@ -44,73 +45,85 @@ private:
 };
 
 //==============================================================================
-class MuLaw : public juce::dsp::ProcessorBase
+class MuLawProcessor : public LofiProcessorBase
 {
 public:
-    MuLaw() = default;
+    MuLawProcessor();
     
-    ~MuLaw() = default;
+    ~MuLawProcessor() override;
     
     void prepare(const juce::dsp::ProcessSpec& spec) override;
     
-    void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
+    void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
     
     void reset() override;
+    
+    LofiProcessorParameters& getParameters() override;
+    
+    void setParameters(const LofiProcessorParameters& params) override;
     
 private:
     unsigned char Lin2MuLaw(int16_t pcm_val);
     
     short MuLaw2Lin(uint8_t u_val);
     
-    int sampleRate = 44100;
+    float mOutScale { 1.0f/32767.0f };
     
-    float mOutScale = 1.0f/32767.0f;
+    int mSampleRate { 44100 };
+    int mNumChannels { 2 };
+    int mResamplingFilterOrder { 8 };
+    std::vector<int> mDownsamplingCounter { 0, 0 };
+    std::vector<float> mDownsamplingInput { 0.0f, 0.0f };
+    
+    LofiProcessorParameters parameters;
+    
+    using IIR = juce::dsp::IIR::Filter<float>;
+    std::vector<std::vector<IIR>> preFilters;
+    std::vector<std::vector<IIR>> postFilters;
+    
+    juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> mFilterCoefficientsArray;
 };
 
 //==============================================================================
-class GSMProcessor : public juce::dsp::ProcessorBase
+class GSMProcessor : public LofiProcessorBase
 {
 public:
-    GSMProcessor() = default;
+    GSMProcessor();
     
-    ~GSMProcessor();
+    ~GSMProcessor() override;
     
     void prepare(const juce::dsp::ProcessSpec& spec) override;
     
-    void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
-    
-    void processBuffer(juce::AudioBuffer<float>& buffer);
-    
+    void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
+        
     void reset() override;
     
-    void setDownsampling(int newDownsampling);
+    LofiProcessorParameters& getParameters() override;
+    
+    void setParameters(const LofiProcessorParameters& params) override;
     
 private:
-    gsm encode = gsm_create();
-    gsm decode = gsm_create();
-    gsm_signal* gsmSignalInput = new gsm_signal[160];
-    gsm_signal* gsmSignal = new gsm_signal[160];
-    gsm_signal* gsmSignalOutput = new gsm_signal[160];
-    gsm_frame gsmFrame;
-    int gsmSignalCounter { 0 };
+    std::unique_ptr<gsm_state> mEncode = std::make_unique<gsm_state>();
+    std::unique_ptr<gsm_state> mDecode = std::make_unique<gsm_state>();
+    std::unique_ptr<gsm_signal[]> mGsmSignalInput = std::make_unique<gsm_signal[]>(160);
+    std::unique_ptr<gsm_signal[]> mGsmSignal = std::make_unique<gsm_signal[]>(160);
+    std::unique_ptr<gsm_signal[]> mGsmSignalOutput = std::make_unique<gsm_signal[]>(160);
+    std::unique_ptr<gsm_byte[]> mGsmFrame = std::make_unique<gsm_byte[]>(33);
     
-    int sampleRate { 44100 };
+    LofiProcessorParameters parameters;
+    int mSampleRate { 44100 };
+    int mGsmSignalCounter { 0 };
+    int mDownsamplingCounter { 0 };
+    int mResamplingFilterOrder { 8 };
     
-    int downsamplingAmt { 4 };
-    int prevDownsamplingAmt { 0 };
-    int downsamplingCounter { 0 };
+    float mCurrentSample { 0.0f };
     
-    juce::dsp::IIR::Filter<float> preFilter1;
-    juce::dsp::IIR::Filter<float> preFilter2;
-    juce::dsp::IIR::Filter<float> preFilter3;
-    juce::dsp::IIR::Filter<float> preFilter4;
+    using IIR = juce::dsp::IIR::Filter<float>;
+    IIR mLowCutFilter;
+    std::vector<IIR> mPreFilters;
+    std::vector<IIR> mPostFilters;
     
-    juce::dsp::IIR::Filter<float> postFilter1;
-    juce::dsp::IIR::Filter<float> postFilter2;
-    juce::dsp::IIR::Filter<float> postFilter3;
-    juce::dsp::IIR::Filter<float> postFilter4;
-    
-    juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> filterCoefficientsArray;
+    juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> mFilterCoefficientsArray;
 };
 
 //==============================================================================

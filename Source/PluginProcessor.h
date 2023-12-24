@@ -14,6 +14,25 @@
 #include "LofiProcessors.h"
 #include "Utilities.h"
 
+struct ProcessorFactory
+{
+    std::unique_ptr<LofiProcessorBase> create(int type)
+    {
+        auto iter = processorMapping.find(type);
+        if (iter != processorMapping.end())
+            return iter->second();
+        
+        return nullptr;
+    }
+    
+    std::map<int,
+             std::function<std::unique_ptr<LofiProcessorBase>()>> processorMapping
+    {
+        { 2, []() { return std::make_unique<MuLawProcessor>(); } },
+        { 3, []() { return std::make_unique<GSMProcessor>(); }}
+    };
+};
+
 //==============================================================================
 /**
 */
@@ -80,15 +99,20 @@ private:
     juce::AudioParameterChoice* downsamplingMenuParameter = nullptr;
     
     juce::AudioPlayHead* audioPlayHead = nullptr;
-    //SpinLockedPosInfo lastPosInfo;
     LockGuardedPosInfo lastPosInfo;
     float lastClock = -1;
     
     BrokenPlayer brokenPlayer;
     juce::dsp::DryWetMixer<float> dryWetMixer;
     
-    MuLaw muLaw;
-    GSMProcessor gsmProcessor;
+    ProcessorFactory processorFactory {};
+    
+    std::unique_ptr<LofiProcessorBase> slotProcessor = std::unique_ptr<LofiProcessorBase>();
+    
+    LofiProcessorParameters processorParameters;
+    
+    int slotCodec { 0 };
+    int prevSlotCodec { -1 };
     
     DownsampleAndFilter downsampleAndFilter;
     

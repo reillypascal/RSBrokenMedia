@@ -61,29 +61,39 @@ inline float wrap(float a, float b)
     return (a >= 0 ? 0 : b) + (mod > __FLT_EPSILON__ || !isnan(mod) ? mod : 0);
 }
 
-class SpinLockedPosInfo
+struct LofiProcessorParameters
+{
+    LofiProcessorParameters() {}
+    
+    LofiProcessorParameters& operator=(const LofiProcessorParameters& params)
+    {
+        if (this != &params)
+        {
+            downsampling = params.downsampling;
+            bitrate = params.bitrate;
+        }
+        return *this;
+    }
+    int downsampling { 1 };
+    int bitrate { 1 };
+};
+
+class LofiProcessorBase
 {
 public:
-    // Wait-free, but setting new info may fail if the main thread is currently
-    // calling `get`. This is unlikely to matter in practice because
-    // we'll be calling `set` much more frequently than `get`.
-    void set (const juce::AudioPlayHead::PositionInfo& newInfo)
-    {
-        const juce::SpinLock::ScopedTryLockType lock (mutex);
-
-        if (lock.isLocked())
-            info = newInfo;
-    }
-
-    juce::AudioPlayHead::PositionInfo get() const noexcept
-    {
-        const juce::SpinLock::ScopedLockType lock (mutex);
-        return info;
-    }
-
-private:
-    juce::SpinLock mutex;
-    juce::AudioPlayHead::PositionInfo info;
+    LofiProcessorBase() {}
+    
+    virtual ~LofiProcessorBase() {}
+    
+    virtual void prepare(const juce::dsp::ProcessSpec& spec) = 0;
+    
+    virtual void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) = 0;
+    
+    virtual void reset() = 0;
+    
+    virtual LofiProcessorParameters& getParameters() = 0;
+    
+    virtual void setParameters(const LofiProcessorParameters& params) = 0;
 };
 
 class LockGuardedPosInfo

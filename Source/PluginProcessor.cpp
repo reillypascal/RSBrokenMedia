@@ -1,5 +1,4 @@
 /*
-/*
   ==============================================================================
 
     This file contains the basic framework code for a JUCE plugin processor.
@@ -176,8 +175,6 @@ void RSBrokenMediaAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     
     dryWetMixer.prepare(spec);
     
-    muLaw.prepare(spec);
-    gsmProcessor.prepare(spec);
     downsampleAndFilter.prepare(spec);
 }
 
@@ -240,30 +237,37 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     int numRepeats = static_cast<int>(repeatsParameter->load()); // check menu data type
     float dryWetMix = dryWetMixParameter->load();
     
-    int downsamplingIndex = downsamplingMenuParameter->getIndex();
-    std::vector<int> downsamplingAmts { 0, 2, 3, 4, 5, 6, 8 };
-    int codec = codecMenuParameter->getIndex();
-    
     // ======== mix in dry ========
     dryWetMixer.setWetMixProportion(dryWetMix);
     dryWetMixer.pushDrySamples(juce::dsp::AudioBlock<float> {buffer});
     
-    //======== constant downsampling ========
-    juce::dsp::AudioBlock<float> preBrokenBlock { buffer };
-    if (downsamplingIndex != 0 && codec != 2)
+    //======== constant codec processing ========
+    slotCodec = codecMenuParameter->getIndex();
+    
+    if (slotCodec != prevSlotCodec)
     {
-        downsampleAndFilter.setDownsampling(downsamplingAmts[downsamplingIndex]);
-        downsampleAndFilter.process(juce::dsp::ProcessContextReplacing<float>(preBrokenBlock));
-        //downsampleAndFilter.processBuffer(buffer);
+        slotProcessor = processorFactory.create(slotCodec);
+        
+        if (slotProcessor != nullptr)
+        {
+            juce::dsp::ProcessSpec spec;
+            spec.sampleRate = getSampleRate();
+            spec.maximumBlockSize = buffer.getNumSamples();
+            spec.numChannels = buffer.getNumChannels();
+            
+            slotProcessor->prepare(spec);
+        }
+        
+        prevSlotCodec = slotCodec;
     }
     
-    //======== constant codec processing ========
-    if (codec == 1) // if menu doesn't include GSM, need 2 to work
-        muLaw.process(juce::dsp::ProcessContextReplacing<float>(preBrokenBlock));
-    else if (codec == 2)
+    if (slotProcessor != nullptr)
     {
-        gsmProcessor.setDownsampling(downsamplingAmts[downsamplingIndex]);
-        gsmProcessor.processBuffer(buffer);
+        processorParameters = slotProcessor->getParameters();
+        processorParameters.downsampling = downsamplingMenuParameter->getIndex() + 1;
+        slotProcessor->setParameters(processorParameters);
+        
+        slotProcessor->processBlock(buffer, midiMessages);
     }
     
     //======== broken player ========
