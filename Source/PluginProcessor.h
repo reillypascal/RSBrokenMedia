@@ -28,8 +28,8 @@ struct ProcessorFactory
     std::map<int,
              std::function<std::unique_ptr<LofiProcessorBase>()>> processorMapping
     {
-        { 2, []() { return std::make_unique<MuLawProcessor>(); } },
-        { 3, []() { return std::make_unique<GSMProcessor>(); }}
+        { 1, []() { return std::make_unique<MuLawProcessor>(); } },
+        { 2, []() { return std::make_unique<GSMProcessor>(); } }
     };
 };
 
@@ -107,14 +107,16 @@ private:
     
     ProcessorFactory processorFactory {};
     
-    std::unique_ptr<LofiProcessorBase> slotProcessor = std::unique_ptr<LofiProcessorBase>();
+    std::unique_ptr<LofiProcessorBase> slotProcessor = std::unique_ptr<LofiProcessorBase> {};
     
     LofiProcessorParameters processorParameters;
     
     int slotCodec { 0 };
-    int prevSlotCodec { -1 };
+    int prevSlotCodec { 0 };
     
-    DownsampleAndFilter downsampleAndFilter;
+//    DownsampleAndFilter downsampleAndFilter;
+    GSMProcessor gsmProcessor;
+    MuLawProcessor muLawProcessor;
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RSBrokenMediaAudioProcessor)

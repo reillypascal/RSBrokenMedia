@@ -74,8 +74,8 @@ struct LofiProcessorParameters
         }
         return *this;
     }
-    int downsampling { 1 };
-    int bitrate { 1 };
+    int downsampling = 1;
+    int bitrate = 1;
 };
 
 class LofiProcessorBase
