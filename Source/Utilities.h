@@ -72,12 +72,14 @@ struct LofiProcessorParameters
             bitDepth = params.bitDepth;
             bitrate = params.bitrate;
             downsampling = params.downsampling;
+            drive = params.drive;
         }
         return *this;
     }
     int bitDepth { 24 };
     int bitrate { 1 };
     int downsampling { 1 };
+    float drive { 1.0f };
 };
 
 class LofiProcessorBase

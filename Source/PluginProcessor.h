@@ -114,10 +114,6 @@ private:
     int slotCodec { 0 };
     int prevSlotCodec { 0 };
     
-//    DownsampleAndFilter downsampleAndFilter;
-    GSMProcessor gsmProcessor;
-    MuLawProcessor muLawProcessor;
-    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RSBrokenMediaAudioProcessor)
 };

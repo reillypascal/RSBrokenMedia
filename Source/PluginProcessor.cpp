@@ -174,10 +174,6 @@ void RSBrokenMediaAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     spec.numChannels = getTotalNumInputChannels();
     
     dryWetMixer.prepare(spec);
-    
-//    downsampleAndFilter.prepare(spec);
-    muLawProcessor.prepare(spec);
-    gsmProcessor.prepare(spec);
 }
 
 void RSBrokenMediaAudioProcessor::releaseResources()
@@ -271,9 +267,6 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         
         slotProcessor->processBlock(buffer, midiMessages);
     }
-    
-//    gsmProcessor.processBlock(buffer, midiMessages);
-//    muLawProcessor.processBlock(buffer, midiMessages);
     
     //======== broken player ========
     brokenPlayer.setAnalogFX(analogFX);

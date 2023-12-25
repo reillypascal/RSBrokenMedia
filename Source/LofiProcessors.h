@@ -186,66 +186,68 @@ private:
 };
 
 //==============================================================================
-class DownsampleAndFilter : public juce::dsp::ProcessorBase
+class ChebyDrive : public LofiProcessorBase
 {
 public:
-    DownsampleAndFilter() = default;
+    ChebyDrive();
     
-    ~DownsampleAndFilter() = default;
+    ~ChebyDrive() override;
     
     void prepare(const juce::dsp::ProcessSpec& spec) override;
     
-    void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
-    
-    void processBuffer(juce::AudioBuffer<float>& buffer);
+    void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
     
     void reset() override;
     
-    void setDownsampling(int newDownsampling);
+    LofiProcessorParameters& getParameters() override;
+    
+    void setParameters(const LofiProcessorParameters& params) override;
     
 private:
-    int sampleRate { 44100 };
-    int downsampling { 2 };
-    int prevDownsampling { 0 };
-    std::vector<int> downsamplingCounter { 0, 0 };
-    float cutoff { 4410 };
-    
-    std::vector<float> currentSample { 0.0f, 0.0f };
-    
-    std::vector<Line<float>> resamplingRamps { Line<float>(), Line<float>() };
-    
-    using IIR = juce::dsp::IIR::Filter<float>;
-    //IIR preFilter1L;
-    //IIR preFilter1R;
-    std::vector<juce::dsp::IIR::Filter<float>> preFilter1;
-    std::vector<juce::dsp::IIR::Filter<float>> preFilter2;
-    std::vector<juce::dsp::IIR::Filter<float>> preFilter3;
-    std::vector<juce::dsp::IIR::Filter<float>> preFilter4;
-    
-    std::vector<juce::dsp::IIR::Filter<float>> postFilter1;
-    std::vector<juce::dsp::IIR::Filter<float>> postFilter2;
-    std::vector<juce::dsp::IIR::Filter<float>> postFilter3;
-    std::vector<juce::dsp::IIR::Filter<float>> postFilter4;
-    
-    juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> filterCoefficientsArray;
+    LofiProcessorParameters parameters;
 };
 
 //==============================================================================
-class ChebyDrive : public juce::dsp::ProcessorBase
-{
-public:
-    ChebyDrive() = default;
-    
-    ~ChebyDrive() = default;
-    
-    void prepare(const juce::dsp::ProcessSpec& spec) override;
-    
-    void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
-    
-    void reset() override;
-    
-    void setDrive(float newDrive);
-    
-private:
-    float drive { 0.0f };
-};
+//class DownsampleAndFilter : public juce::dsp::ProcessorBase
+//{
+//public:
+//    DownsampleAndFilter() = default;
+//    
+//    ~DownsampleAndFilter() = default;
+//    
+//    void prepare(const juce::dsp::ProcessSpec& spec) override;
+//    
+//    void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
+//    
+//    void processBuffer(juce::AudioBuffer<float>& buffer);
+//    
+//    void reset() override;
+//    
+//    void setDownsampling(int newDownsampling);
+//    
+//private:
+//    int sampleRate { 44100 };
+//    int downsampling { 2 };
+//    int prevDownsampling { 0 };
+//    std::vector<int> downsamplingCounter { 0, 0 };
+//    float cutoff { 4410 };
+//    
+//    std::vector<float> currentSample { 0.0f, 0.0f };
+//    
+//    std::vector<Line<float>> resamplingRamps { Line<float>(), Line<float>() };
+//    
+//    using IIR = juce::dsp::IIR::Filter<float>;
+//    //IIR preFilter1L;
+//    //IIR preFilter1R;
+//    std::vector<juce::dsp::IIR::Filter<float>> preFilter1;
+//    std::vector<juce::dsp::IIR::Filter<float>> preFilter2;
+//    std::vector<juce::dsp::IIR::Filter<float>> preFilter3;
+//    std::vector<juce::dsp::IIR::Filter<float>> preFilter4;
+//    
+//    std::vector<juce::dsp::IIR::Filter<float>> postFilter1;
+//    std::vector<juce::dsp::IIR::Filter<float>> postFilter2;
+//    std::vector<juce::dsp::IIR::Filter<float>> postFilter3;
+//    std::vector<juce::dsp::IIR::Filter<float>> postFilter4;
+//    
+//    juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> filterCoefficientsArray;
+//};
