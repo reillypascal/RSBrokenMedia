@@ -21,27 +21,27 @@ extern "C" {
 #include "gsm/unproto.h"
 }
 
-class Bitcrusher : public juce::dsp::ProcessorBase
+class Bitcrusher : public LofiProcessorBase
 {
 public:
-    Bitcrusher() = default;
+    Bitcrusher();
     
-    ~Bitcrusher() = default;
+    ~Bitcrusher() override;
     
     void prepare(const juce::dsp::ProcessSpec& spec) override;
     
-    void process(const juce::dsp::ProcessContextReplacing<float>& context) override;
+    void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
     
     void reset() override;
     
-    void setBitDepth(float newDepth);
+    LofiProcessorParameters& getParameters() override;
     
-    void setDownsampling(int newDownsampling);
+    void setParameters(const LofiProcessorParameters& params) override;
     
 private:
-    int sampleRate = 44100;
-    float bitDepth = 8;
-    int downsampling = 4;
+    LofiProcessorParameters parameters;
+    
+    int mSampleRate = 44100;
 };
 
 //==============================================================================

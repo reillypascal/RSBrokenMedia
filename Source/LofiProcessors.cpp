@@ -8,55 +8,54 @@
 
 #include "LofiProcessors.h"
 
+Bitcrusher::Bitcrusher() = default;
+
+Bitcrusher::~Bitcrusher() = default;
+
 void Bitcrusher::prepare(const juce::dsp::ProcessSpec& spec)
 {
-    sampleRate = spec.sampleRate;
+    mSampleRate = spec.sampleRate;
     reset();
 }
 
-void Bitcrusher::process(const juce::dsp::ProcessContextReplacing<float>& context)
+void Bitcrusher::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    auto&& inBlock = context.getInputBlock();
-    auto&& outBlock = context.getOutputBlock();
+    int numSamples = buffer.getNumSamples();
+    int numChannels = buffer.getNumChannels();
     
-    jassert(inBlock.getNumChannels() == outBlock.getNumChannels());
-    jassert(inBlock.getNumSamples() == outBlock.getNumSamples());
-    
-    size_t len = inBlock.getNumSamples();
-    size_t numChannels = inBlock.getNumChannels();
-    
-    for (size_t channel = 0; channel < numChannels; ++channel)
+    for (int channel = 0; channel < numChannels; ++channel)
     {
-        auto* src = inBlock.getChannelPointer(channel);
-        auto* dst = outBlock.getChannelPointer(channel);
+        auto* channelData = buffer.getWritePointer(channel);
         
-        for (size_t sample = 0; sample < len; ++sample)
+        for (int sample = 0; sample < numSamples; ++sample)
         {
             // reduce bit depth
-            float totalQLevels = powf(2.0f, bitDepth);
-            float val = src[sample];
+            float totalQLevels = powf(2.0f, parameters.bitDepth);
+            float val = channelData[sample];
             float remainder = fmodf(val, 1.0f/totalQLevels);
             
             // quantize
-            dst[sample] = val - remainder;
+            channelData[sample] = val - remainder;
             
-            if (downsampling > 1)
+            if (parameters.downsampling > 1)
             {
-                if (sample % downsampling != 0) dst[sample] = dst[sample - (sample % downsampling)];
+                if (sample % parameters.downsampling != 0) channelData[sample] = channelData[sample - (sample % parameters.downsampling)];
             }
         }
     }
 }
 
-void Bitcrusher::reset()
+void Bitcrusher::reset() {}
+
+LofiProcessorParameters& Bitcrusher::getParameters() { return parameters; }
+
+void Bitcrusher::setParameters(const LofiProcessorParameters& params)
 {
-    
+    if (parameters.bitDepth != params.bitDepth || parameters.downsampling != params.downsampling)
+    {
+        parameters = params;
+    }
 }
-
-void Bitcrusher::setBitDepth(float newDepth) { bitDepth = newDepth; }
-
-void Bitcrusher::setDownsampling(int newDownsampling) { downsampling = newDownsampling; }
-
 
 //==============================================================================
 MuLawProcessor::MuLawProcessor() = default;

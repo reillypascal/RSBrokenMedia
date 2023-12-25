@@ -69,13 +69,15 @@ struct LofiProcessorParameters
     {
         if (this != &params)
         {
-            downsampling = params.downsampling;
+            bitDepth = params.bitDepth;
             bitrate = params.bitrate;
+            downsampling = params.downsampling;
         }
         return *this;
     }
-    int downsampling = 1;
-    int bitrate = 1;
+    int bitDepth { 24 };
+    int bitrate { 1 };
+    int downsampling { 1 };
 };
 
 class LofiProcessorBase

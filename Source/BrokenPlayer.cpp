@@ -182,8 +182,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
     
     if (useBitcrusher)
     {
-        juce::dsp::AudioBlock<float> block { buffer };
-        bitcrusher.process(juce::dsp::ProcessContextReplacing<float>(block));
+        bitcrusher.processBlock(buffer, midiMessages);
     }
 }
 
@@ -259,9 +258,13 @@ void BrokenPlayer::receiveClockedPulse()
     
     float scaledProb = powf(bitcrusherProb, 3.0f);
     
-    bitcrusher.setBitDepth(floor( scale(scaledProb * -1 + 1, 0.0f, 1.0f, 5.0f, 12.0f) + 0.5) + (randomFloat() * 3) );
+    bitcrusherParameters = bitcrusher.getParameters();
     
-    bitcrusher.setDownsampling(static_cast<int>( scale(scaledProb, 0.0f, 1.0f, 2.0f, 15.0f) + (randomFloat() * (1 + (scaledProb * 16)))  ));
+    bitcrusherParameters.bitDepth = static_cast<int>(floor( scale(scaledProb * -1 + 1, 0.0f, 1.0f, 5.0f, 12.0f) + 0.5) + (randomFloat() * 3));
+    
+    bitcrusherParameters.downsampling = static_cast<int>( scale(scaledProb, 0.0f, 1.0f, 2.0f, 15.0f) + (randomFloat() * (1 + (scaledProb * 16))) );
+    
+    bitcrusher.setParameters(bitcrusherParameters);
 }
 //==============================================================================
 void BrokenPlayer::setAnalogFX(float newAnalogFX)
