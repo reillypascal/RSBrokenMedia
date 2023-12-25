@@ -70,6 +70,9 @@ private:
     juce::Label repeatsLabel;
     juce::Label dryWetMixLabel;
     
+    juce::Label codecModeLabel;
+    juce::Label downsamplingLabel;
+    
     juce::Slider analogFXSlider;
     juce::Slider digitalFXSlider;
     juce::Slider lofiFXSlider;

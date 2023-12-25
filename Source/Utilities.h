@@ -73,6 +73,7 @@ struct LofiProcessorParameters
             bitrate = params.bitrate;
             downsampling = params.downsampling;
             drive = params.drive;
+            waveshape = params.waveshape;
         }
         return *this;
     }
@@ -80,6 +81,7 @@ struct LofiProcessorParameters
     int bitrate { 1 };
     int downsampling { 1 };
     float drive { 1.0f };
+    int waveshape { 2 };
 };
 
 class LofiProcessorBase

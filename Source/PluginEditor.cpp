@@ -43,6 +43,15 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     dryWetMixLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(dryWetMixLabel);
     
+    // menu labels
+    codecModeLabel.setText("Codec:", juce::dontSendNotification);
+    codecModeLabel.setJustificationType(juce::Justification::right);
+    addAndMakeVisible(codecModeLabel);
+    
+    downsamplingLabel.setText("Downsamp:", juce::dontSendNotification);
+    downsamplingLabel.setJustificationType(juce::Justification::right);
+    addAndMakeVisible(downsamplingLabel);
+    
     // sliders row 1
     analogFXSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     analogFXSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
@@ -105,7 +114,7 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     // menus
     addAndMakeVisible(codecModeMenu);
     using enum CodecModes;
-    codecModeMenu.addItem("Codec:", static_cast<int>(normal));
+    codecModeMenu.addItem("None", static_cast<int>(normal));
     codecModeMenu.addItem("Mu-Law", static_cast<int>(mulaw));
     codecModeMenu.addItem("GSM 06.10", static_cast<int>(gsm610));
     codecModeMenu.setSelectedId(static_cast<int>(normal));
@@ -115,7 +124,7 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     
     addAndMakeVisible(downsamplingMenu);
 //    using enum DownsamplingModes;
-    downsamplingMenu.addItem("Downsamp:", 1);
+    downsamplingMenu.addItem("None", 1);
     downsamplingMenu.addItem("x2", 2);
     downsamplingMenu.addItem("x3", 3);
     downsamplingMenu.addItem("x4", 4);
@@ -247,10 +256,18 @@ void RSBrokenMediaAudioProcessorEditor::resized()
                              textLabelHeight);
     
     // menus
-    codecModeMenu.setBounds(getWidth() - 25 - 295,
+    codecModeLabel.setBounds(getWidth() - 25 - 435,
+                             getHeight() - 25 - menuHeight,
+                             75,
+                             menuHeight);
+    codecModeMenu.setBounds(getWidth() - 25 - 357,
                             getHeight() - 25 - menuHeight,
-                            150,
+                            125,
                             menuHeight);
+    downsamplingLabel.setBounds(getWidth() - 25 - 223,
+                             getHeight() - 25 - menuHeight,
+                             95,
+                             menuHeight);
     downsamplingMenu.setBounds(getWidth() - 25 - 125,
                             getHeight() - 25 - menuHeight,
                             125,

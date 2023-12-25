@@ -4,7 +4,7 @@ Generates new stereo tape speeds, CD skipping patterns, and distortion effects o
 
 Dropdowns offer downsampling and codec options. Codecs currently include nonlinear 8-bit "μ-law" and the [GSM 06.10](https://quut.com/gsm/) cell phone codec.
 
-![Screenshot of the user interface, showing a row of 3 primary knobs, a row of 4 secondary knobs, and dropdowns at the bottom for changing codec and quality](https://github.com/reillypascal/RSBrokenMedia/assets/94489575/7fbd9137-6545-4dfc-b900-3354a55e9f5b)
+![Screenshot of the user interface, showing a row of 3 primary knobs, a row of 4 secondary knobs, and dropdowns at the bottom for changing codec and sample rate](https://github.com/reillypascal/RSBrokenMedia/assets/94489575/614e155d-10ee-44f1-826a-9dbfd1671fdb)
 
 ## Build Dependencies:
 - JUCE (https://juce.com/download/)
