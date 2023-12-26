@@ -2,7 +2,7 @@
 
 Generates new stereo tape speeds, CD skipping patterns, and distortion effects on every pulse of an adjustable clock. Probabilibies and intensities of these effects are controlled by the "Analog FX," "Digital FX," and "Distortion FX" knobs. The "Repeats" knob controls both the number of subdivisions of the buffer, as well as the number of repeats for those subdivisions.
 
-Dropdowns offer downsampling and codec options. Codecs currently include nonlinear 8-bit "μ-law" and the [GSM 06.10](https://quut.com/gsm/) cell phone codec.
+Dropdowns offer downsampling and codec options. Codecs currently include "μ-law" nonlinear 8-bit and the [GSM 06.10](https://quut.com/gsm/) cell phone codec.
 
 ![Screenshot of the user interface, showing a row of 3 primary knobs, a row of 4 secondary knobs, and dropdowns at the bottom for changing codec and sample rate](https://github.com/reillypascal/RSBrokenMedia/assets/94489575/614e155d-10ee-44f1-826a-9dbfd1671fdb)
 

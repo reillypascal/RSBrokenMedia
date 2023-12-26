@@ -1,8 +1,12 @@
 /*
   ==============================================================================
 
-    
-
+ - Bitcrusher
+ - Chebyshev Drive
+ - Add saturation based on vb.mulaw~
+ - MuLaw
+ - GSM 06.10
+ 
   ==============================================================================
 */
 
@@ -55,6 +59,97 @@ void Bitcrusher::setParameters(const LofiProcessorParameters& params)
     {
         parameters = params;
     }
+}
+
+//==============================================================================
+ChebyDrive::ChebyDrive() = default;
+
+ChebyDrive::~ChebyDrive() = default;
+
+void ChebyDrive::prepare(const juce::dsp::ProcessSpec & spec) {}
+    
+void ChebyDrive::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+{
+    int numSamples = buffer.getNumSamples();
+    int numChannels = buffer.getNumChannels();
+    
+    // drive
+    for (int channel = 0; channel < numChannels; ++channel)
+    {
+        auto* channelData = buffer.getWritePointer(channel);
+        
+        for (int sample = 0; sample < numSamples; ++sample)
+        {
+            float wetSignal = ((std::pow(2.0f * channelData[sample], 2.0f) - 1.0f) * std::sin(0.5 * M_PI * parameters.drive));
+            float drySignal = channelData[sample] * std::cos(0.5 * M_PI * parameters.drive);
+            channelData[sample] = wetSignal + drySignal;
+        }
+    }
+}
+
+void ChebyDrive::reset() {}
+
+LofiProcessorParameters& ChebyDrive::getParameters() { return parameters; }
+
+void ChebyDrive::setParameters(const LofiProcessorParameters& params)
+{
+    if (parameters.drive != params.drive)
+    {
+        parameters.drive = params.drive;
+        parameters = params;
+    }
+}
+
+//==============================================================================
+SaturationProcessor::SaturationProcessor() = default;
+
+SaturationProcessor::~SaturationProcessor() = default;
+
+void SaturationProcessor::prepare(const juce::dsp::ProcessSpec& spec)
+{
+    mSampleRate = spec.sampleRate;
+    reset();
+}
+
+void SaturationProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+{
+    int numSamples = buffer.getNumSamples();
+    int numChannels = buffer.getNumChannels();
+    
+    float saturationGainLin = pow(10.0f, parameters.drive / 20.0f);
+    
+    // drive
+    for (int channel = 0; channel < numChannels; ++channel)
+    {
+        auto* channelData = buffer.getWritePointer(channel);
+        
+        for (int sample = 0; sample < numSamples; ++sample)
+        {
+            channelData[sample] = softClip(saturationGainLin * channelData[sample]);
+        }
+    }
+}
+
+void SaturationProcessor::reset() {}
+
+LofiProcessorParameters& SaturationProcessor::getParameters() { return parameters; }
+
+void SaturationProcessor::setParameters(const LofiProcessorParameters& params)
+{
+    if (parameters.drive != params.drive)
+    {
+        parameters.drive = params.drive;
+        parameters = params;
+    }
+}
+
+float SaturationProcessor::softClip(float x)
+{
+    if (x > 3.0f)
+        return 1.0f;
+    else if (x < -3.0f)
+        return -1.0f;
+    else return x * (27.0 + x * x) / (27.0 + 9.0 * x * x);
 }
 
 //==============================================================================
@@ -328,43 +423,6 @@ void GSMProcessor::setParameters(const LofiProcessorParameters& params)
     }
     
     parameters = params;
-}
-
-//==============================================================================
-//ChebyDrive::ChebyDrive() = default;
-//
-//ChebyDrive::~ChebyDrive() = default;
-
-void ChebyDrive::prepare(const juce::dsp::ProcessSpec & spec) {}
-    
-void ChebyDrive::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
-{
-    int numSamples = buffer.getNumSamples();
-    int numChannels = buffer.getNumChannels();
-    
-    // drive
-    for (int channel = 0; channel < numChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer(channel);
-        
-        for (int sample = 0; sample < numSamples; ++sample)
-        {
-            float wetSignal = ((std::pow(2.0f * channelData[sample], 2.0f) - 1.0f) * std::sin(0.5 * M_PI * parameters.drive));
-            float drySignal = channelData[sample] * std::cos(0.5 * M_PI * parameters.drive);
-            channelData[sample] = wetSignal + drySignal;
-        }
-    }
-}
-
-LofiProcessorParameters& ChebyDrive::getParameters() { return parameters; }
-
-void ChebyDrive::setParameters(const LofiProcessorParameters& params)
-{
-    if (parameters.drive != params.drive)
-    {
-        parameters.drive = params.drive;
-        parameters = params;
-    }
 }
 
 //==============================================================================

@@ -1,7 +1,11 @@
 /*
   ==============================================================================
 
-    Make processor base class?
+ - Bitcrusher
+ - Chebyshev Drive
+ - MuLaw
+ - GSM 06.10
+ - Add saturation based on vb.mulaw~
 
   ==============================================================================
 */
@@ -42,6 +46,53 @@ private:
     LofiProcessorParameters parameters;
     
     int mSampleRate = 44100;
+};
+
+//==============================================================================
+class ChebyDrive : public LofiProcessorBase
+{
+public:
+    ChebyDrive();
+    
+    ~ChebyDrive() override;
+    
+    void prepare(const juce::dsp::ProcessSpec& spec) override;
+    
+    void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
+    
+    void reset() override;
+    
+    LofiProcessorParameters& getParameters() override;
+    
+    void setParameters(const LofiProcessorParameters& params) override;
+    
+private:
+    LofiProcessorParameters parameters;
+};
+
+//==============================================================================
+class SaturationProcessor : public LofiProcessorBase
+{
+public:
+    SaturationProcessor();
+    
+    ~SaturationProcessor() override;
+    
+    void prepare(const juce::dsp::ProcessSpec& spec) override;
+    
+    void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
+    
+    void reset() override;
+    
+    LofiProcessorParameters& getParameters() override;
+    
+    void setParameters(const LofiProcessorParameters& params) override;
+private:
+    int mSampleRate { 44100 };
+    
+    LofiProcessorParameters parameters;
+    
+    float softClip(float x);
 };
 
 //==============================================================================
@@ -183,28 +234,6 @@ private:
     std::vector<IIR> mPostFilters;
     
     juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> mFilterCoefficientsArray;
-};
-
-//==============================================================================
-class ChebyDrive : public LofiProcessorBase
-{
-public:
-    ChebyDrive();
-    
-    ~ChebyDrive() override;
-    
-    void prepare(const juce::dsp::ProcessSpec& spec) override;
-    
-    void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
-    
-    void reset() override;
-    
-    LofiProcessorParameters& getParameters() override;
-    
-    void setParameters(const LofiProcessorParameters& params) override;
-    
-private:
-    LofiProcessorParameters parameters;
 };
 
 //==============================================================================

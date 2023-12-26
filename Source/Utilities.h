@@ -12,27 +12,6 @@
 
 #include <JuceHeader.h>
 
-// measures change between sequential values
-// functor so it can keep state
-/*
-template <typename T>
-struct Delta
-{
-    T prevVal;
-    
-    Delta() : prevVal(0) {}
-    
-    T operator()(const T& currentVal)
-    {
-        T delta = currentVal - prevVal;
-        if (delta <= __FLT_EPSILON__ || isnan(delta))
-            delta = 0;
-        prevVal = currentVal;
-        
-        return delta;
-    }
-};
-*/
 inline float randomFloat()
 {
     return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);

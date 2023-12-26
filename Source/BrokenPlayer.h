@@ -15,6 +15,26 @@
 #include "Modulators.h"
 #include "Utilities.h"
 
+struct DistortionFactory
+{
+    std::unique_ptr<LofiProcessorBase> create(int type)
+    {
+        auto iter = processorMapping.find(type);
+        if (iter != processorMapping.end())
+            return iter->second();
+        
+        return nullptr;
+    }
+    
+    std::map<int,
+             std::function<std::unique_ptr<LofiProcessorBase>()>> processorMapping
+    {
+        { 1, []() { return std::make_unique<Bitcrusher>(); } },
+        { 2, []() { return std::make_unique<ChebyDrive>(); } },
+        { 3, []() { return std::make_unique<SaturationProcessor>(); } }
+    };
+};
+
 //==============================================================================
 class RandomLoop
 {
@@ -175,11 +195,11 @@ public:
     void setAnalogFX(float newAnalogFX);
     void setDigitalFX(float newDigitalFX);
     void setLofiFX(float newLofiFX);
+    void setDistortionType(int newDistortion);
     void setBufferLength(int newBufferLength);
     void newNumRepeats(int newRepeatCount);
     void setClockSpeed(int newClockSpeed);
     void useExternalClock(bool shouldUseExternalClock);
-    //void setClockSpeed(float newClockSpeed);
     
 private:
     int mBentBufferLength = 66150; // length of full 8s buffer to use
@@ -187,7 +207,7 @@ private:
     
     std::vector<float> mReadPosition { 0, 0 };
     std::vector<float> mPlaybackRate { 1.0, 1.0 };
-    std::vector<float> mChirpReadPosition { 0.0, 0.0 };
+//    std::vector<float> mChirpReadPosition { 0.0, 0.0 };
     
     OscillatorParameters lfoParameters;
     SignalGenData<float> lfoOutput;
@@ -238,5 +258,25 @@ private:
     // lofi processors
     Bitcrusher bitcrusher;
     LofiProcessorParameters bitcrusherParameters;
+    
+    SaturationProcessor saturationProcessor;
+    LofiProcessorParameters saturationParameters;
+    
+    std::vector<int> distortionTypes {};
     bool useBitcrusher = false;
+    bool useCheby = false;
+    bool useSaturation = false;
+    int useDist = 0;
+    
+    DistortionFactory distortionFactory {};
+    
+    std::vector<std::unique_ptr<LofiProcessorBase>> slotProcessors = std::vector<std::unique_ptr<LofiProcessorBase>> {};
+    
+    LofiProcessorParameters distortionParameters;
+    
+    std::vector<std::vector<int>> distCombos { { 1 }, { 2 }, { 3 }, { 1, 2 }, { 1, 3 } };
+    int distCombo { 4 };
+    int prevDistCombo { -1 };
+    
+    int mNumProcessorSlots = 2;
 };

@@ -109,7 +109,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                     mReadPosition.at(channel) = repeatsValues.at(0);
             }
             
-
+            //================ old tape skips ================
 //            if (skipProb.at(channel) < cdSkipProb)
 //            {
 //                std::vector<int> skipLoop;
@@ -160,7 +160,7 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
                 if (mReadPosition.at(channel) > randomLoop.at(1) )//|| mReadPosition.at(channel) < randomLoop.at(0))
                     mReadPosition.at(channel) = randomLoop.at(0);
             }
-            //================ tape FX only ================
+            //================ advance, only loop at buffer seg. ================
             else
             {
                 channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
@@ -180,9 +180,42 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
         } // sample loop
     } // channel loop
     
-    if (useBitcrusher)
+//    if (useBitcrusher)
+//    {
+//        bitcrusher.processBlock(buffer, midiMessages);
+//    }
+    
+    // new distortion processors, if necessary
+    if (distCombo != prevDistCombo)
     {
-        bitcrusher.processBlock(buffer, midiMessages);
+        int numProcessors = static_cast<int>(distCombos[distCombo].size());
+        for (int i = 0; i < numProcessors; ++i)
+        {
+            slotProcessors.resize(distCombos[distCombo].size());
+            
+            for (int proc = 0; proc < numProcessors; ++proc)
+            {
+                slotProcessors[proc] = distortionFactory.create(distCombos[distCombo][proc]);
+                
+                if (slotProcessors[proc] != nullptr)
+                {
+                    juce::dsp::ProcessSpec spec;
+                    spec.sampleRate = getSampleRate();
+                    spec.maximumBlockSize = buffer.getNumSamples();
+                    spec.numChannels = buffer.getNumChannels();
+                    
+                    slotProcessors[proc]->prepare(spec);
+                }
+            }
+            
+            prevDistCombo = distCombo;
+        }
+    }
+    
+    // apply correct distortion
+    if (useDist > 0)
+    {
+        slotProcessors.at(useDist - 1)->processBlock(buffer, midiMessages);
     }
 }
 
@@ -265,6 +298,9 @@ void BrokenPlayer::receiveClockedPulse()
     bitcrusherParameters.downsampling = static_cast<int>( scale(scaledProb, 0.0f, 1.0f, 2.0f, 15.0f) + (randomFloat() * (1 + (scaledProb * 16))) );
     
     bitcrusher.setParameters(bitcrusherParameters);
+    
+    // multi-dist
+    useDist = static_cast<int>(std::round(scale(randomFloat(), 0.0f, 1.0f, powf(bitcrusherProb, 3.0f), std::clamp(bitcrusherProb * 4.0f, 0.0f, 3.0f))));
 }
 //==============================================================================
 void BrokenPlayer::setAnalogFX(float newAnalogFX)
@@ -292,6 +328,7 @@ void BrokenPlayer::setDigitalFX(float newDigitalFX)
     randomLoopProb = powf(newDigitalFX, 0.707f);
 }
 void BrokenPlayer::setLofiFX(float newLofiFX) { bitcrusherProb = newLofiFX; }
+void BrokenPlayer::setDistortionType(int newDist) { distCombo = newDist; }
 void BrokenPlayer::setBufferLength(int newBufferLength)
 {
     mBentBufferLength = std::clamp<int>(newBufferLength, 0, 352800, std::less<int>());
