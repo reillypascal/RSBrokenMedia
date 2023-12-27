@@ -49,28 +49,6 @@ private:
 };
 
 //==============================================================================
-class ChebyDrive : public LofiProcessorBase
-{
-public:
-    ChebyDrive();
-    
-    ~ChebyDrive() override;
-    
-    void prepare(const juce::dsp::ProcessSpec& spec) override;
-    
-    void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
-    
-    void reset() override;
-    
-    LofiProcessorParameters& getParameters() override;
-    
-    void setParameters(const LofiProcessorParameters& params) override;
-    
-private:
-    LofiProcessorParameters parameters;
-};
-
-//==============================================================================
 class SaturationProcessor : public LofiProcessorBase
 {
 public:
@@ -239,6 +217,28 @@ private:
     
     juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> mFilterCoefficientsArray;
 };
+
+//==============================================================================
+//class ChebyDrive : public LofiProcessorBase
+//{
+//public:
+//    ChebyDrive();
+//    
+//    ~ChebyDrive() override;
+//    
+//    void prepare(const juce::dsp::ProcessSpec& spec) override;
+//    
+//    void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
+//    
+//    void reset() override;
+//    
+//    LofiProcessorParameters& getParameters() override;
+//    
+//    void setParameters(const LofiProcessorParameters& params) override;
+//    
+//private:
+//    LofiProcessorParameters parameters;
+//};
 
 //==============================================================================
 //class DownsampleAndFilter : public juce::dsp::ProcessorBase
