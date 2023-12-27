@@ -82,8 +82,8 @@ private:
     
     // GUI parameters
     GrayBlueLookAndFeel grayBlueLookAndFeel;
-    const int textBoxWidth = 70;
-    const int textBoxHeight = 25;
+    const int mTextBoxWidth = 70;
+    const int mTextBoxHeight = 25;
     
     RSBrokenMediaAudioProcessor& audioProcessor;
 

@@ -58,23 +58,23 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     
     // sliders row 1
     analogFXSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-    analogFXSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
+    analogFXSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, mTextBoxWidth, mTextBoxHeight);
     addAndMakeVisible(analogFXSlider);
     analogFXAttachment.reset(new SliderAttachment(valueTreeState, "analogFX", analogFXSlider));
     
     digitalFXSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-    digitalFXSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
+    digitalFXSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, mTextBoxWidth, mTextBoxHeight);
     addAndMakeVisible(digitalFXSlider);
     digitalFXAttachment.reset(new SliderAttachment(valueTreeState, "digitalFX", digitalFXSlider));
     
     lofiFXSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-    lofiFXSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
+    lofiFXSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, mTextBoxWidth, mTextBoxHeight);
     addAndMakeVisible(lofiFXSlider);
     lofiFXAttachment.reset(new SliderAttachment(valueTreeState, "lofiFX", lofiFXSlider));
     
     // sliders row 2
     clockSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-    clockSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
+    clockSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, mTextBoxWidth, mTextBoxHeight);
     addAndMakeVisible(clockSlider);
     clockAttachment.reset(new SliderAttachment(valueTreeState, "clockSpeed", clockSlider));
     
@@ -101,17 +101,17 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     
     // sliders row 2 (cont.)
     bufferLengthSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-    bufferLengthSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
+    bufferLengthSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, mTextBoxWidth, mTextBoxHeight);
     addAndMakeVisible(bufferLengthSlider);
     bufferLengthAttachment.reset(new SliderAttachment(valueTreeState, "bufferLength", bufferLengthSlider));
     
     repeatsSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-    repeatsSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
+    repeatsSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, mTextBoxWidth, mTextBoxHeight);
     addAndMakeVisible(repeatsSlider);
     repeatsAttachment.reset(new SliderAttachment(valueTreeState, "repeats", repeatsSlider));
     
     dryWetMixSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-    dryWetMixSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, textBoxHeight);
+    dryWetMixSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, mTextBoxWidth, mTextBoxHeight);
     addAndMakeVisible(dryWetMixSlider);
     dryWetMixAttachment.reset(new SliderAttachment(valueTreeState, "dryWetMix", dryWetMixSlider));
     
@@ -134,7 +134,6 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     codecModeMenuAttachment.reset(new ComboBoxAttachment(valueTreeState, "codec", codecModeMenu));
     
     addAndMakeVisible(downsamplingMenu);
-//    using enum DownsamplingModes;
     downsamplingMenu.addItem("None", 1);
     downsamplingMenu.addItem("x2", 2);
     downsamplingMenu.addItem("x3", 3);
@@ -187,7 +186,7 @@ void RSBrokenMediaAudioProcessorEditor::resized()
     const int rowSpacer = 87;
     const int bottomMenuSpacer = 20;
     
-    //const int menuWidth = 200;
+//    const int menuWidth = 200;
     const int menuHeight = 20;
     const int sliderWidth1 = (getWidth() - (2 * xBorder)) / 3;
     const int sliderWidth2 = (getWidth() - (2 * xBorder)) / 4;
@@ -229,10 +228,10 @@ void RSBrokenMediaAudioProcessorEditor::resized()
                               sliderWidth2,
                               sliderHeight2);
     // button
-    clockModeButton.setBounds(xBorder + (sliderWidth2 / 2) + (textBoxWidth / 2) + 12,
+    clockModeButton.setBounds(xBorder + (sliderWidth2 / 2) + (mTextBoxWidth / 2) + 12,
                               yBorderTop + sliderHeight1 + rowSpacer + 106,
                               45,
-                              textBoxHeight);
+                              mTextBoxHeight);
     
     // row 1 labels
     analogFXLabel.setBounds(xBorder + ((sliderWidth1 / 2) - (textLabelWidth / 2)),
