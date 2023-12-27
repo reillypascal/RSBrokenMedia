@@ -73,7 +73,6 @@ private:
     
     float softClip(float x);
     
-//    juce::dsp::IIR::Coefficients<float>::Ptr mLowCutFilterCoefficients;
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> mLowCutFilter;
 };
 

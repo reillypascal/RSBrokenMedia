@@ -84,32 +84,16 @@ public:
 private:
     juce::AudioProcessorValueTreeState parameters;
     
-    std::atomic<float>* analogFXParameter = nullptr;
-    std::atomic<float>* digitalFXParameter = nullptr;
-    std::atomic<float>* lofiFXParameter = nullptr;
-    
-    std::atomic<float>* clockSpeedParameter = nullptr;
-    juce::AudioParameterChoice* clockSpeedNoteParameter = nullptr; // updated to give nullptr
-    bool useDawClock = false;
-    std::atomic<float>* bufferLengthParameter = nullptr;
-    std::atomic<float>* repeatsParameter = nullptr;
-    std::atomic<float>* dryWetMixParameter = nullptr;
-    
-    juce::AudioParameterChoice* distMenuParameter = nullptr;
-    juce::AudioParameterChoice* codecMenuParameter = nullptr;
-    juce::AudioParameterChoice* downsamplingMenuParameter = nullptr;
-    
-    juce::AudioPlayHead* audioPlayHead = nullptr;
+    bool useDawClock { false };
+    juce::AudioPlayHead* audioPlayHead { nullptr };
     LockGuardedPosInfo lastPosInfo;
-    float lastClock = -1;
+    float lastClock { -1 };
     
     BrokenPlayer brokenPlayer;
     juce::dsp::DryWetMixer<float> dryWetMixer;
     
     ProcessorFactory processorFactory {};
-    
     std::unique_ptr<LofiProcessorBase> slotProcessor = std::unique_ptr<LofiProcessorBase> {};
-    
     LofiProcessorParameters processorParameters;
     
     int slotCodec { 0 };

@@ -75,10 +75,9 @@ void SaturationProcessor::prepare(const juce::dsp::ProcessSpec& spec)
     mSampleRate = spec.sampleRate;
     mNumChannels = spec.numChannels;
     
-    mLowCutFilter.reset();
     mLowCutFilter.prepare(spec);
-    
-//    mLowCutFilterCoefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(mSampleRate, 75.0, 0.707);
+//    *mLowCutFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(mSampleRate, 75.0f);
+    mLowCutFilter.reset();
     
     reset();
 }

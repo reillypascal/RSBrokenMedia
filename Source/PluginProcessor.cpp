@@ -81,19 +81,6 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     0)
 })
 {
-    analogFXParameter = parameters.getRawParameterValue("analogFX");
-    digitalFXParameter = parameters.getRawParameterValue("digitalFX");
-    lofiFXParameter = parameters.getRawParameterValue("lofiFX");
-    
-    clockSpeedParameter = parameters.getRawParameterValue("clockSpeed");
-    clockSpeedNoteParameter = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("clockSpeedNote"));
-    bufferLengthParameter = parameters.getRawParameterValue("bufferLength");
-    repeatsParameter = parameters.getRawParameterValue("repeats");
-    dryWetMixParameter = parameters.getRawParameterValue("dryWetMix");
-    
-    distMenuParameter = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("distType"));
-    codecMenuParameter = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("codec"));
-    downsamplingMenuParameter = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("downsampling"));
 }
 
 RSBrokenMediaAudioProcessor::~RSBrokenMediaAudioProcessor()
@@ -230,22 +217,28 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     std::vector<float> clockNoteValues { 16.0f, 8.0f, 4.0f, 3.0f, 2.0f, 1.5f, 1.0f, 0.75f, 0.5f, 0.25f };
     
     //======== get parameters ========
-    float analogFX = analogFXParameter->load();
-    float digitalFX = digitalFXParameter->load();
-    float lofiFX = lofiFXParameter->load();
+    float analogFX = parameters.getRawParameterValue("analogFX")->load();
     
-    float clockSpeed = clockSpeedParameter->load() * (getSampleRate() / 1000);
-    int clockSpeedNoteIndex = clockSpeedNoteParameter->getIndex();
-    int bufferLength = static_cast<int>(bufferLengthParameter->load() * 44.1f); // check menu data type
-    int numRepeats = static_cast<int>(repeatsParameter->load()); // check menu data type
-    float dryWetMix = dryWetMixParameter->load();
+    float digitalFX = parameters.getRawParameterValue("digitalFX")->load();
+    
+    float lofiFX = parameters.getRawParameterValue("lofiFX")->load();
+    
+    float clockSpeed = parameters.getRawParameterValue("clockSpeed")->load() * (getSampleRate() / 1000);
+    
+    int clockSpeedNoteIndex = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("clockSpeedNote"))->getIndex();
+    
+    int bufferLength = static_cast<int>(parameters.getRawParameterValue("bufferLength")->load() * 44.1f); // check menu data type
+    
+    int numRepeats = static_cast<int>(parameters.getRawParameterValue("repeats")->load()); // check menu data type
+    
+    float dryWetMix = parameters.getRawParameterValue("dryWetMix")->load();
     
     // ======== mix in dry ========
     dryWetMixer.setWetMixProportion(dryWetMix);
     dryWetMixer.pushDrySamples(juce::dsp::AudioBlock<float> {buffer});
     
     //======== constant codec processing ========
-    slotCodec = codecMenuParameter->getIndex();
+    slotCodec = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("codec"))->getIndex();
     
     if (slotCodec != prevSlotCodec)
     {
@@ -267,7 +260,9 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     if (slotProcessor != nullptr)
     {
         processorParameters = slotProcessor->getParameters();
-        processorParameters.downsampling = downsamplingMenuParameter->getIndex() + 1;
+        
+        processorParameters.downsampling = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("downsampling"))->getIndex() + 1;
+        
         slotProcessor->setParameters(processorParameters);
         
         slotProcessor->processBlock(buffer, midiMessages);
@@ -277,7 +272,8 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     brokenPlayer.setAnalogFX(analogFX);
     brokenPlayer.setDigitalFX(digitalFX);
     brokenPlayer.setLofiFX(lofiFX);
-    brokenPlayer.setDistortionType(distMenuParameter->getIndex());
+    
+    brokenPlayer.setDistortionType(static_cast<juce::AudioParameterChoice*>(parameters.getParameter("distType"))->getIndex());
     
     brokenPlayer.useExternalClock(useDawClock);
     if (useDawClock == true)
