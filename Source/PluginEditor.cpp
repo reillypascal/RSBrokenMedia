@@ -268,27 +268,27 @@ void RSBrokenMediaAudioProcessorEditor::resized()
                              textLabelHeight);
     
     // menus
-    distLabel.setBounds(getWidth() - 25 - 657,
+    codecModeLabel.setBounds(getWidth() - 25 - 668,
                         getHeight() - 25 - menuHeight,
-                        95,
+                        75,
                         menuHeight);
-    distMenu.setBounds(getWidth() - 25 - 560,
+    codecModeMenu.setBounds(getWidth() - 25 - 591,
                        getHeight() - 25 - menuHeight,
                        125,
                        menuHeight);
-    codecModeLabel.setBounds(getWidth() - 25 - 435,
-                             getHeight() - 25 - menuHeight,
-                             75,
-                             menuHeight);
-    codecModeMenu.setBounds(getWidth() - 25 - 357,
-                            getHeight() - 25 - menuHeight,
-                            125,
-                            menuHeight);
-    downsamplingLabel.setBounds(getWidth() - 25 - 223,
+    downsamplingLabel.setBounds(getWidth() - 25 - 455,
                              getHeight() - 25 - menuHeight,
                              95,
                              menuHeight);
-    downsamplingMenu.setBounds(getWidth() - 25 - 125,
+    downsamplingMenu.setBounds(getWidth() - 25 - 357,
+                            getHeight() - 25 - menuHeight,
+                            125,
+                            menuHeight);
+    distLabel.setBounds(getWidth() - 25 - 223,
+                             getHeight() - 25 - menuHeight,
+                             95,
+                             menuHeight);
+    distMenu.setBounds(getWidth() - 25 - 125,
                             getHeight() - 25 - menuHeight,
                             125,
                             menuHeight);
