@@ -30,8 +30,8 @@ struct DistortionFactory
              std::function<std::unique_ptr<LofiProcessorBase>()>> processorMapping
     {
         { 1, []() { return std::make_unique<Bitcrusher>(); } },
-        { 2, []() { return std::make_unique<ChebyDrive>(); } },
-        { 3, []() { return std::make_unique<SaturationProcessor>(); } }
+        { 2, []() { return std::make_unique<SaturationProcessor>(); } }/*,
+        { 3, []() { return std::make_unique<ChebyDrive>(); } }*/
     };
 };
 
@@ -253,30 +253,19 @@ private:
 //    float cdSkipProb = 0.15;
     float randomLoopProb = 0.35;
     
-    float bitcrusherProb = 0;
+    float distortionProb = 0;
     
     // lofi processors
-    Bitcrusher bitcrusher;
-    LofiProcessorParameters bitcrusherParameters;
+//    Bitcrusher bitcrusher;
+//    LofiProcessorParameters bitcrusherParameters;
     
-    SaturationProcessor saturationProcessor;
-    LofiProcessorParameters saturationParameters;
-    
-    std::vector<int> distortionTypes {};
-    bool useBitcrusher = false;
-    bool useCheby = false;
-    bool useSaturation = false;
-    int useDist = 0;
+    bool useDist { false };
+    int currentDist { 2 };
+    int prevDist { -1 };
     
     DistortionFactory distortionFactory {};
     
-    std::vector<std::unique_ptr<LofiProcessorBase>> slotProcessors = std::vector<std::unique_ptr<LofiProcessorBase>> {};
+    std::unique_ptr<LofiProcessorBase> slotProcessor = std::unique_ptr<LofiProcessorBase> {};
     
     LofiProcessorParameters distortionParameters;
-    
-    std::vector<std::vector<int>> distCombos { { 1 }, { 2 }, { 3 }, { 1, 2 }, { 1, 3 } };
-    int distCombo { 4 };
-    int prevDistCombo { -1 };
-    
-    int mNumProcessorSlots = 2;
 };

@@ -89,10 +89,15 @@ public:
     void setParameters(const LofiProcessorParameters& params) override;
 private:
     int mSampleRate { 44100 };
+    int mNumChannels { 2 };
     
     LofiProcessorParameters parameters;
     
     float softClip(float x);
+    
+    juce::dsp::IIR::Coefficients<float>::Ptr mLowCutFilterCoefficients;
+    using IIR = juce::dsp::IIR::Filter<float>;
+    std::vector<IIR> mLowCutFilter;
 };
 
 //==============================================================================

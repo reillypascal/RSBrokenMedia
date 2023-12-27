@@ -49,18 +49,18 @@ struct LofiProcessorParameters
         if (this != &params)
         {
             bitDepth = params.bitDepth;
-            bitrate = params.bitrate;
+//            bitrate = params.bitrate;
             downsampling = params.downsampling;
             drive = params.drive;
-            waveshape = params.waveshape;
+//            waveshape = params.waveshape;
         }
         return *this;
     }
     int bitDepth { 24 };
-    int bitrate { 1 };
+//    int bitrate { 1 };
     int downsampling { 1 };
-    float drive { 1.0f };
-    int waveshape { 2 };
+    float drive { 0.0f };
+//    int waveshape { 2 };
 };
 
 class LofiProcessorBase

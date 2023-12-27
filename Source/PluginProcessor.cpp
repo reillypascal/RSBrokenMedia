@@ -73,7 +73,7 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     0),
         std::make_unique<juce::AudioParameterChoice>(juce::ParameterID { "downsampling", 1 },
                                                     "Downsampling Menu",
-                                                     juce::StringArray { "None", "x2", "x4", "x6", "x8", "x10", "x12" },
+                                                     juce::StringArray { "None", "x2", "x3", "x4", "x5", "x6", "x7", "x8" },
                                                     0)
 })
 {

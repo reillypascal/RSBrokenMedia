@@ -6,7 +6,7 @@
               bundleIdentifier="com.reillyspitzfaden.RSBrokenMedia" pluginFormats="buildAU,buildVST3"
               pluginManufacturer="Reilly Spitzfaden " pluginManufacturerCode="Rspi"
               pluginCode="Rsbm" aaxIdentifier="com.reillyspitzfaden.RSBrokenMedia"
-              cppLanguageStandard="17" companyName="Reilly Spitzfaden">
+              cppLanguageStandard="20" companyName="Reilly Spitzfaden">
   <MAINGROUP id="e5JMVm" name="RSBrokenMedia">
     <GROUP id="{9C53C618-AE9D-1752-081E-75A900477894}" name="gsm">
       <FILE id="Z3c6Dq" name="add.c" compile="1" resource="0" file="Source/gsm/add.c"/>
