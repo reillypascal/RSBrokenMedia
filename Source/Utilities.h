@@ -1,9 +1,7 @@
 /*
   ==============================================================================
 
-    Utilities.h
-    Created: 12 Jun 2023 1:29:35am
-    Author:  Reilly Spitzfaden
+    Miscellaneous functions and classes
 
   ==============================================================================
 */
@@ -16,17 +14,7 @@ inline float randomFloat()
 {
     return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 }
-/*
-inline float randomFloatStdDev(float mean = 0, float stdDev = 1)
-{
-    std::vector<float> randomNos;
-    for (int i = 0; i < 2; ++i)
-        randomNos.at(i) = randomFloat();
-    
-    float randWithStdDev = (pow(-2 * std::log(randomNos.at(0)), 0.5) * std::cos(2 * M_PI * randomNos.at(1)));
-    return (randWithStdDev * stdDev) + mean;
-}
-*/
+
 inline float scale(float input, float inLow, float inHi, float outLow, float outHi)
 {
     float scaleFactor = (outHi - outLow)/(inHi - inLow);
@@ -86,16 +74,28 @@ class LockGuardedPosInfo
 public:
     void set(const juce::AudioPlayHead::PositionInfo& newInfo)
     {
-        const std::lock_guard<std::mutex> lock(mutex);
-        info = newInfo;
+        const std::lock_guard<std::mutex> lock(mMutex);
+        mInfo = newInfo;
     }
     
     juce::AudioPlayHead::PositionInfo get() noexcept
     {
-        const std::lock_guard<std::mutex> lock(mutex);
-        return info;
+        const std::lock_guard<std::mutex> lock(mMutex);
+        return mInfo;
     }
 private:
-    std::mutex mutex;
-    juce::AudioPlayHead::PositionInfo info;
+    std::mutex mMutex;
+    juce::AudioPlayHead::PositionInfo mInfo;
 };
+
+/*
+inline float randomFloatStdDev(float mean = 0, float stdDev = 1)
+{
+    std::vector<float> randomNos;
+    for (int i = 0; i < 2; ++i)
+        randomNos.at(i) = randomFloat();
+    
+    float randWithStdDev = (pow(-2 * std::log(randomNos.at(0)), 0.5) * std::cos(2 * M_PI * randomNos.at(1)));
+    return (randWithStdDev * stdDev) + mean;
+}
+*/

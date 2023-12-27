@@ -34,6 +34,7 @@
       <FILE id="wmMuYa" name="unproto.h" compile="0" resource="0" file="Source/gsm/unproto.h"/>
     </GROUP>
     <GROUP id="{1C84336C-33B1-1D67-09AE-FC65F46837BE}" name="Source">
+      <FILE id="kuK3gc" name="GUIStyles.h" compile="0" resource="0" file="Source/GUIStyles.h"/>
       <FILE id="DyzCCX" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="UTHH41" name="PluginProcessor.h" compile="0" resource="0"

@@ -38,16 +38,16 @@ void Bitcrusher::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer
         for (int sample = 0; sample < numSamples; ++sample)
         {
             // reduce bit depth
-            float totalQLevels = powf(2.0f, parameters.bitDepth);
+            float totalQLevels = powf(2.0f, mParameters.bitDepth);
             float val = channelData[sample];
             float remainder = fmodf(val, 1.0f/totalQLevels);
             
             // quantize
             channelData[sample] = val - remainder;
             
-            if (parameters.downsampling > 1)
+            if (mParameters.downsampling > 1)
             {
-                if (sample % parameters.downsampling != 0) channelData[sample] = channelData[sample - (sample % parameters.downsampling)];
+                if (sample % mParameters.downsampling != 0) channelData[sample] = channelData[sample - (sample % mParameters.downsampling)];
             }
         }
     }
@@ -55,13 +55,13 @@ void Bitcrusher::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer
 
 void Bitcrusher::reset() {}
 
-LofiProcessorParameters& Bitcrusher::getParameters() { return parameters; }
+LofiProcessorParameters& Bitcrusher::getParameters() { return mParameters; }
 
 void Bitcrusher::setParameters(const LofiProcessorParameters& params)
 {
-    if (parameters.bitDepth != params.bitDepth || parameters.downsampling != params.downsampling)
+    if (mParameters.bitDepth != params.bitDepth || mParameters.downsampling != params.downsampling)
     {
-        parameters = params;
+        mParameters = params;
     }
 }
 
@@ -88,7 +88,7 @@ void SaturationProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
     int numSamples = buffer.getNumSamples();
     int numChannels = buffer.getNumChannels();
     
-    float saturationGainLin = pow(10.0f, parameters.drive / 20.0f);
+    float saturationGainLin = pow(10.0f, mParameters.drive / 20.0f);
     
     juce::dsp::AudioBlock<float> block(buffer);
     mLowCutFilter.process(juce::dsp::ProcessContextReplacing<float> (block));
@@ -108,14 +108,14 @@ void SaturationProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
 
 void SaturationProcessor::reset() {}
 
-LofiProcessorParameters& SaturationProcessor::getParameters() { return parameters; }
+LofiProcessorParameters& SaturationProcessor::getParameters() { return mParameters; }
 
 void SaturationProcessor::setParameters(const LofiProcessorParameters& params)
 {
-    if (parameters.drive != params.drive)
+    if (mParameters.drive != params.drive)
     {
-        parameters.drive = params.drive;
-        parameters = params;
+        mParameters.drive = params.drive;
+        mParameters = params;
     }
 }
 
@@ -138,25 +138,25 @@ void MuLawProcessor::prepare(const juce::dsp::ProcessSpec& spec)
     mSampleRate = spec.sampleRate;
     mNumChannels = spec.numChannels;
     
-    mFilterCoefficientsArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod((mSampleRate / parameters.downsampling) * 0.4, mSampleRate, mResamplingFilterOrder);
+    mFilterCoefficientsArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod((mSampleRate / mParameters.downsampling) * 0.4, mSampleRate, mResamplingFilterOrder);
         
-    preFilters.resize(mNumChannels);
-    postFilters.resize(mNumChannels);
+    mPreFilters.resize(mNumChannels);
+    mPostFilters.resize(mNumChannels);
     
     for (int channel = 0; channel < mNumChannels; ++channel)
     {
-        preFilters[channel].resize(mResamplingFilterOrder / 2);
-        postFilters[channel].resize(mResamplingFilterOrder / 2);
+        mPreFilters[channel].resize(mResamplingFilterOrder / 2);
+        mPostFilters[channel].resize(mResamplingFilterOrder / 2);
         
         for (int filter = 0; filter < mResamplingFilterOrder / 2; ++filter)
         {
-            preFilters[channel][filter].reset();
-            preFilters[channel][filter].prepare(spec);
-            preFilters[channel][filter].coefficients = mFilterCoefficientsArray.getObjectPointer(filter);
+            mPreFilters[channel][filter].reset();
+            mPreFilters[channel][filter].prepare(spec);
+            mPreFilters[channel][filter].coefficients = mFilterCoefficientsArray.getObjectPointer(filter);
             
-            postFilters[channel][filter].reset();
-            postFilters[channel][filter].prepare(spec);
-            postFilters[channel][filter].coefficients = mFilterCoefficientsArray.getObjectPointer(filter);
+            mPostFilters[channel][filter].reset();
+            mPostFilters[channel][filter].prepare(spec);
+            mPostFilters[channel][filter].coefficients = mFilterCoefficientsArray.getObjectPointer(filter);
         }
     }
     
@@ -182,13 +182,13 @@ void MuLawProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
             channelData[sample] = static_cast<float>(pcm_out) * mOutScale;
             
             // downsample and filter
-            if (parameters.downsampling > 1)
+            if (mParameters.downsampling > 1)
             {
                 // pre-filtering
                 for (int filter = 0; filter < mResamplingFilterOrder / 2; ++filter)
                 {
-                    channelData[sample] = preFilters[channel][filter].processSample(channelData[sample]);
-                    preFilters[channel][filter].snapToZero();
+                    channelData[sample] = mPreFilters[channel][filter].processSample(channelData[sample]);
+                    mPreFilters[channel][filter].snapToZero();
                 }
                 
                 // downsampling
@@ -198,13 +198,13 @@ void MuLawProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
                 channelData[sample] = mDownsamplingInput[channel];
                 
                 ++mDownsamplingCounter[channel];
-                mDownsamplingCounter[channel] %= parameters.downsampling;
+                mDownsamplingCounter[channel] %= mParameters.downsampling;
                 
                 // post-filtering
                 for (int filter = 0; filter < mResamplingFilterOrder / 2; ++filter)
                 {
-                    channelData[sample] = postFilters[channel][filter].processSample(channelData[sample]);
-                    postFilters[channel][filter].snapToZero();
+                    channelData[sample] = mPostFilters[channel][filter].processSample(channelData[sample]);
+                    mPostFilters[channel][filter].snapToZero();
                 }
                 
 //                std::vector<float> downsamplingGainComp { 1.0f, 1.0f, 1.45f, 2.35f, 3.5f, 4.35f, 5.5f, 6.25f, 7.0f };
@@ -216,11 +216,11 @@ void MuLawProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
 
 void MuLawProcessor::reset() {}
 
-LofiProcessorParameters& MuLawProcessor::getParameters() { return parameters; }
+LofiProcessorParameters& MuLawProcessor::getParameters() { return mParameters; }
 
 void MuLawProcessor::setParameters(const LofiProcessorParameters& params)
 {
-    if (parameters.downsampling != params.downsampling)
+    if (mParameters.downsampling != params.downsampling)
     {
         // coefficients
         mFilterCoefficientsArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod((mSampleRate / params.downsampling) * 0.4, mSampleRate, mResamplingFilterOrder); 
@@ -229,14 +229,14 @@ void MuLawProcessor::setParameters(const LofiProcessorParameters& params)
         {
             for (int filter = 0; filter < mResamplingFilterOrder / 2; ++filter)
             {
-                preFilters[channel][filter].coefficients = mFilterCoefficientsArray.getObjectPointer(filter);
+                mPreFilters[channel][filter].coefficients = mFilterCoefficientsArray.getObjectPointer(filter);
                 
-                postFilters[channel][filter].coefficients = mFilterCoefficientsArray.getObjectPointer(filter);
+                mPostFilters[channel][filter].coefficients = mFilterCoefficientsArray.getObjectPointer(filter);
             }
         }
     }
     
-    parameters = params;
+    mParameters = params;
 }
 
 inline unsigned char MuLawProcessor::Lin2MuLaw(int16_t pcm_val)
@@ -244,9 +244,9 @@ inline unsigned char MuLawProcessor::Lin2MuLaw(int16_t pcm_val)
     int sign = (pcm_val >> 8) & 0x80;
     if (sign)
         pcm_val = static_cast<int16_t>(-pcm_val);
-    if (pcm_val > cClip)
-        pcm_val = cClip;
-    pcm_val = static_cast<int16_t>(pcm_val + cBias);
+    if (pcm_val > mMuLawClip)
+        pcm_val = mMuLawClip;
+    pcm_val = static_cast<int16_t>(pcm_val + mMuLawBias);
     int exponent = static_cast<int>(MuLawCompressTable[(pcm_val >> 7) & 0xff]);
     int mantissa = (pcm_val >> (exponent + 3)) & 0x0f;
     int compressedByte = ~(sign | (exponent << 4) | mantissa);
@@ -268,7 +268,7 @@ void GSMProcessor::prepare(const juce::dsp::ProcessSpec& spec)
 {
     mSampleRate = spec.sampleRate;
     
-    mFilterCoefficientsArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod((mSampleRate / parameters.downsampling) * 0.4, mSampleRate, mResamplingFilterOrder);
+    mFilterCoefficientsArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod((mSampleRate / mParameters.downsampling) * 0.4, mSampleRate, mResamplingFilterOrder);
     
     mPreFilters.resize(mResamplingFilterOrder / 2);
     mPostFilters.resize(mResamplingFilterOrder / 2);
@@ -313,7 +313,7 @@ void GSMProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
 //            src[sample] = mLowCutFilter.processSample(src[sample]);
             
             // pre-filter if downsampling
-            if (parameters.downsampling > 1)
+            if (mParameters.downsampling > 1)
             {
                 for (int filter = 0; filter < mResamplingFilterOrder / 2; ++filter)
                 {
@@ -351,11 +351,11 @@ void GSMProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
             
             // increment downsampling frame
             ++mDownsamplingCounter;
-            mDownsamplingCounter %= parameters.downsampling;
+            mDownsamplingCounter %= mParameters.downsampling;
             
             //================= post-filtering block =================
             // post-filter and compensate if downsampling
-            if (parameters.downsampling > 1)
+            if (mParameters.downsampling > 1)
             {
                 // post-filtering
                 for (int filter = 0; filter < mResamplingFilterOrder / 2; ++filter)
@@ -379,11 +379,11 @@ void GSMProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
 
 void GSMProcessor::reset() {}
 
-LofiProcessorParameters& GSMProcessor::getParameters() { return parameters; }
+LofiProcessorParameters& GSMProcessor::getParameters() { return mParameters; }
 
 void GSMProcessor::setParameters(const LofiProcessorParameters& params)
 {
-    if (parameters.downsampling != params.downsampling)
+    if (mParameters.downsampling != params.downsampling)
     {
         // coefficients
         mFilterCoefficientsArray = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod((mSampleRate / params.downsampling) * 0.4, mSampleRate, mResamplingFilterOrder);
@@ -398,7 +398,7 @@ void GSMProcessor::setParameters(const LofiProcessorParameters& params)
         }
     }
     
-    parameters = params;
+    mParameters = params;
 }
 
 //==============================================================================

@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    This file contains the basic framework code for a JUCE plugin editor.
+    Plugin GUI implementation
 
   ==============================================================================
 */
@@ -125,11 +125,10 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     distMenuAttachment.reset(new ComboBoxAttachment(valueTreeState, "distType", distMenu));
     
     addAndMakeVisible(codecModeMenu);
-    using enum CodecModes;
-    codecModeMenu.addItem("None", static_cast<int>(normal));
-    codecModeMenu.addItem("Mu-Law", static_cast<int>(mulaw));
-    codecModeMenu.addItem("GSM 06.10", static_cast<int>(gsm610));
-    codecModeMenu.setSelectedId(static_cast<int>(normal));
+    codecModeMenu.addItem("None", 1);
+    codecModeMenu.addItem("Mu-Law", 2);
+    codecModeMenu.addItem("GSM 06.10", 3);
+    codecModeMenu.setSelectedId(1);
     codecModeMenu.setTextWhenNothingSelected("None");
     codecModeMenu.setJustificationType(juce::Justification::centred);
     codecModeMenuAttachment.reset(new ComboBoxAttachment(valueTreeState, "codec", codecModeMenu));

@@ -1,11 +1,15 @@
 /*
   ==============================================================================
 
+ Distortion:
  - Bitcrusher
- - Chebyshev Drive
+ - Tanh Saturation
+ Codec:
  - MuLaw
  - GSM 06.10
- - Add saturation based on vb.mulaw~
+ Removed:
+ - Chebyshev Drive
+ - Downsample and Filter
 
   ==============================================================================
 */
@@ -43,7 +47,7 @@ public:
     void setParameters(const LofiProcessorParameters& params) override;
     
 private:
-    LofiProcessorParameters parameters;
+    LofiProcessorParameters mParameters;
     
     int mSampleRate = 44100;
 };
@@ -69,7 +73,7 @@ private:
     int mSampleRate { 44100 };
     int mNumChannels { 2 };
     
-    LofiProcessorParameters parameters;
+    LofiProcessorParameters mParameters;
     
     float softClip(float x);
     
@@ -99,8 +103,8 @@ private:
     
     short MuLaw2Lin(uint8_t u_val);
     
-    const int cBias = 0x84;
-    const int cClip = 32635;
+    const int mMuLawBias = 0x84;
+    const int mMuLawClip = 32635;
     
     constexpr static char MuLawCompressTable[256]
     {
@@ -166,11 +170,11 @@ private:
     std::vector<int> mDownsamplingCounter { 0, 0 };
     std::vector<float> mDownsamplingInput { 0.0f, 0.0f };
     
-    LofiProcessorParameters parameters;
+    LofiProcessorParameters mParameters;
     
     using IIR = juce::dsp::IIR::Filter<float>;
-    std::vector<std::vector<IIR>> preFilters;
-    std::vector<std::vector<IIR>> postFilters;
+    std::vector<std::vector<IIR>> mPreFilters;
+    std::vector<std::vector<IIR>> mPostFilters;
     
     juce::ReferenceCountedArray<juce::dsp::IIR::Coefficients<float>> mFilterCoefficientsArray;
 };
@@ -201,7 +205,7 @@ private:
     std::unique_ptr<gsm_signal[]> mGsmSignalOutput = std::make_unique<gsm_signal[]>(160);
     std::unique_ptr<gsm_byte[]> mGsmFrame = std::make_unique<gsm_byte[]>(33);
     
-    LofiProcessorParameters parameters;
+    LofiProcessorParameters mParameters;
     int mSampleRate { 44100 };
     int mGsmSignalCounter { 0 };
     int mDownsamplingCounter { 0 };

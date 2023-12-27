@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    This file contains the basic framework code for a JUCE plugin editor.
+    Plugin GUI interface
 
   ==============================================================================
 */
@@ -10,36 +10,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-
-//look and feel of sliders/labels
-class GrayBlueLookAndFeel : public juce::LookAndFeel_V4
-{
-public:
-    GrayBlueLookAndFeel()
-    {
-        // colours
-        // sliders
-        setColour(juce::Slider::thumbColourId, juce::Colours::aliceblue);
-        setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::lightsteelblue);
-        setColour(juce::Slider::trackColourId, juce::Colours::lightslategrey);
-        setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::aliceblue);
-        setColour(juce::Slider::textBoxTextColourId, juce::Colours::aliceblue);
-        // labels
-        setColour(juce::Label::textColourId, juce::Colours::aliceblue);
-        // menus
-        setColour(juce::ComboBox::backgroundColourId, juce::Colour(0xAA88CC)); // doesn't read as actual colour?
-        setColour(juce::ComboBox::buttonColourId, juce::Colours::slategrey);
-        setColour(juce::ComboBox::textColourId, juce::Colours::aliceblue);
-        setColour(juce::ComboBox::outlineColourId, juce::Colours::aliceblue);
-        setColour(juce::ComboBox::arrowColourId, juce::Colours::aliceblue);
-        // buttons
-        setColour(juce::TextButton::buttonOnColourId, juce::Colours::aliceblue);
-        setColour(juce::TextButton::textColourOnId, juce::Colours::black);
-        
-        // fonts
-        setDefaultSansSerifTypeface(juce::LookAndFeel::getTypefaceForFont(juce::Font("Verdana", 18.0f, juce::Font::plain)));
-    }
-};
+#include "GUIStyles.h"
 
 //==============================================================================
 /**
@@ -61,6 +32,7 @@ public:
 private:
     juce::AudioProcessorValueTreeState& valueTreeState;
     
+    // labels
     juce::Label analogFXLabel;
     juce::Label digitalFXLabel;
     juce::Label lofiFXLabel;
@@ -74,6 +46,7 @@ private:
     juce::Label codecModeLabel;
     juce::Label downsamplingLabel;
     
+    // sliders
     juce::Slider analogFXSlider;
     juce::Slider digitalFXSlider;
     juce::Slider lofiFXSlider;
@@ -83,29 +56,15 @@ private:
     juce::Slider repeatsSlider;
     juce::Slider dryWetMixSlider;
     
+    // button
     juce::TextButton clockModeButton;
     
+    // dropdowns
     juce::ComboBox distMenu;
     juce::ComboBox codecModeMenu;
     juce::ComboBox downsamplingMenu;
     
-    enum class CodecModes
-    {
-        normal = 1,
-        mulaw,
-        gsm610
-    };
-//    enum class DownsamplingModes
-//    {
-//        none = 1,
-//        x2,
-//        x3,
-//        x4,
-//        x5,
-//        x6,
-//        x8
-//    };
-    
+    // attachments
     std::unique_ptr<SliderAttachment> analogFXAttachment;
     std::unique_ptr<SliderAttachment> digitalFXAttachment;
     std::unique_ptr<SliderAttachment> lofiFXAttachment;
@@ -121,9 +80,10 @@ private:
     std::unique_ptr<ComboBoxAttachment> codecModeMenuAttachment;
     std::unique_ptr<ComboBoxAttachment> downsamplingMenuAttachment;
     
+    // GUI parameters
+    GrayBlueLookAndFeel grayBlueLookAndFeel;
     const int textBoxWidth = 70;
     const int textBoxHeight = 25;
-    GrayBlueLookAndFeel grayBlueLookAndFeel;
     
     RSBrokenMediaAudioProcessor& audioProcessor;
 

@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    This file contains the basic framework code for a JUCE plugin processor.
+    Audio processor class interface
 
   ==============================================================================
 */
@@ -84,17 +84,17 @@ public:
 private:
     juce::AudioProcessorValueTreeState parameters;
     
-    bool useDawClock { false };
     juce::AudioPlayHead* audioPlayHead { nullptr };
     LockGuardedPosInfo lastPosInfo;
+    bool useDawClock { false };
     float lastClock { -1 };
-    
-    BrokenPlayer brokenPlayer;
-    juce::dsp::DryWetMixer<float> dryWetMixer;
     
     ProcessorFactory processorFactory {};
     std::unique_ptr<LofiProcessorBase> slotProcessor = std::unique_ptr<LofiProcessorBase> {};
     LofiProcessorParameters processorParameters;
+    
+    BrokenPlayer brokenPlayer;
+    juce::dsp::DryWetMixer<float> dryWetMixer;
     
     int slotCodec { 0 };
     int prevSlotCodec { 0 };

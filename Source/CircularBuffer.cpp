@@ -1,6 +1,8 @@
 /*
   ==============================================================================
-
+ 
+ Circular buffer implementation
+ 
   ==============================================================================
 */
 
@@ -66,11 +68,11 @@ template <typename SampleType>
 const SampleType CircularBuffer<SampleType>::readSample(int channel, SampleType readPosition)
 {
     // look at DelayLine implementation
-    readPosFrac = readPosition - floor(readPosition);
-    readPosInt = static_cast<int>(floor(readPosition));
+    mReadPosFrac = readPosition - floor(readPosition);
+    mReadPosInt = static_cast<int>(floor(readPosition));
     
-    int index1 = readPosInt;
-    int index2 = readPosInt + 1;
+    int index1 = mReadPosInt;
+    int index2 = mReadPosInt + 1;
     
     if (index2 >= mUsedSegmentLength)
     {
@@ -82,7 +84,7 @@ const SampleType CircularBuffer<SampleType>::readSample(int channel, SampleType 
     SampleType value2 = mCircularBuffer.getSample(channel, index2);
     
     // add difference between samples scaled by position between them
-    return value1 + (readPosFrac * (value2 - value1));
+    return value1 + (mReadPosFrac * (value2 - value1));
 }
 
 //==============================================================================

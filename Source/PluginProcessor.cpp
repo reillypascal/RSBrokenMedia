@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    This file contains the basic framework code for a JUCE plugin processor.
+    Audio processor class implementation
 
   ==============================================================================
 */
@@ -31,7 +31,7 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     "Digital FX",
                                                     0.0f,
                                                     1.0f,
-                                                    0.35f),
+                                                    0.15f),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "lofiFX", 1 },
                                                     "Distortion FX",
                                                     0.0f,
@@ -42,7 +42,7 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     juce::NormalisableRange<float>(80,
                                                                                    2000,
                                                                                    5),
-                                                    1000),
+                                                    825),
         std::make_unique<juce::AudioParameterChoice>(juce::ParameterID { "clockSpeedNote", 1 },
                                                     "Clock Speed (Note)",
                                                     juce::StringArray { "4 bars", "2 bars", "1 bar", "1/2d", "1/2", "1/4d", "1/4", "1/8d", "1/8", "1/16" },
@@ -52,7 +52,7 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     juce::NormalisableRange<float>(12,
                                                                                    8000,
                                                                                    1),
-                                                    1500),
+                                                    1000),
         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "repeats", 1 },
                                                     "Repeats",
                                                     juce::NormalisableRange<float>(1,
@@ -79,13 +79,9 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
                                                     "Downsampling Menu",
                                                      juce::StringArray { "None", "x2", "x3", "x4", "x5", "x6", "x7", "x8" },
                                                     0)
-})
-{
-}
+}) {}
 
-RSBrokenMediaAudioProcessor::~RSBrokenMediaAudioProcessor()
-{
-}
+RSBrokenMediaAudioProcessor::~RSBrokenMediaAudioProcessor() {}
 
 //==============================================================================
 const juce::String RSBrokenMediaAudioProcessor::getName() const
@@ -136,18 +132,14 @@ int RSBrokenMediaAudioProcessor::getCurrentProgram()
     return 0;
 }
 
-void RSBrokenMediaAudioProcessor::setCurrentProgram (int index)
-{
-}
+void RSBrokenMediaAudioProcessor::setCurrentProgram (int index) {}
 
 const juce::String RSBrokenMediaAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void RSBrokenMediaAudioProcessor::changeProgramName (int index, const juce::String& newName)
-{
-}
+void RSBrokenMediaAudioProcessor::changeProgramName (int index, const juce::String& newName) {}
 
 //==============================================================================
 void RSBrokenMediaAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
@@ -235,7 +227,7 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     
     // ======== mix in dry ========
     dryWetMixer.setWetMixProportion(dryWetMix);
-    dryWetMixer.pushDrySamples(juce::dsp::AudioBlock<float> {buffer});
+    dryWetMixer.pushDrySamples(juce::dsp::AudioBlock<float> { buffer });
     
     //======== constant codec processing ========
     slotCodec = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("codec"))->getIndex();

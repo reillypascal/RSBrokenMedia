@@ -1,6 +1,7 @@
 /*
   ==============================================================================
-
+ 
+ Circular buffer interface
  - need gain (from copyFromWithRamp)?
 
   ==============================================================================
@@ -48,6 +49,6 @@ private:
     int mTotalSize { 0 };
     int mUsedSegmentLength { 66150 };
     
-    SampleType readPosFrac { 0 };
-    int readPosInt { 0 };
+    SampleType mReadPosFrac { 0 };
+    int mReadPosInt { 0 };
 };

@@ -1,16 +1,119 @@
 /*
   ==============================================================================
 
-TODO:
- - 
+    Broken player classes' implementations
+ 
   ==============================================================================
 */
 
 #include "BrokenPlayer.h"
 
+// random loop generator
+//==============================================================================
+RandomLoop::RandomLoop() = default;
+
+RandomLoop::RandomLoop(int bufferLen, int countLen)
+:mBufferLength(bufferLen), mCountLength(countLen){}
+
+void RandomLoop::init() { mCounter = 0; }
+
+std::vector<int> RandomLoop::advanceCtrAndReturn()
+{
+    if (mCounter == 0)
+    {
+        for (int i = 0; i < 2; ++i)
+            mLoopValues.at(i) = (randomFloat() * 64) * ((mBufferLength - 1) / 64);
+        
+        // normal distribution to 2 std dev - was supposed to make more
+        // values close together but actually seemed to make glitches sparser
+        
+//            std::random_device rd {};
+//            std::mt19937 gen { rd() }; // mersenne "twister" random generator
+//
+//            for (int i = 0; i < 2; ++i)
+//            {
+//                std::normal_distribution<float> dist { static_cast<float>((bufferLength - 1) / 2), static_cast<float>((bufferLength - 1) / 4) };
+//
+//                int randomVal = static_cast<int>(std::round(dist(gen)));
+//
+//                loopValues.at(i) = std::clamp<int>(randomVal, 0, (bufferLength - 1), std::less<int>());
+//            }
+        
+        std::sort(mLoopValues.begin(), mLoopValues.end(), std::less<int>());
+    }
+    
+    ++mCounter;
+    mCounter %= mCountLength;
+    
+    return mLoopValues;
+}
+
+void RandomLoop::setBufferLength(int newBufferLen)
+{
+    mBufferLength = std::clamp<int>(newBufferLen, 0, 352800, std::less<int>());
+    mCounter = 0;
+}
+
+// cd skip
+//==============================================================================
+CDSkip::CDSkip(int bufferLen, int bufferDiv)
+:mBufferLength(bufferLen), mBufferDivisions(bufferDiv)
+{
+    mBufferSegmentLength = mBufferLength / mBufferDivisions;
+}
+
+void CDSkip::init()
+{
+    mCounter = 0;
+    mSegmentCounter = 0; //?
+}
+
+std::vector<int> CDSkip::advanceCtrAndReturn()
+{
+    if (mCounter == 0)
+    {
+        // new number of skips
+        //countLength = rand() % 3 + 2;
+        
+        // increment to next segment
+        ++mSegmentCounter;
+        mSegmentCounter %= (mBufferDivisions - 1);
+        
+        int newSegmentStart = mSegmentCounter * mBufferSegmentLength;
+        
+        mLoopValues.at(0) = newSegmentStart >= 0 && newSegmentStart < mBufferLength ? newSegmentStart : 0;
+        mLoopValues.at(1) = mBufferSegmentLength >= 4 ? mBufferSegmentLength : 4;
+    }
+    
+    // count number of skips
+    ++mCounter;
+    mCounter %= mBufferDivisions;
+    
+    // limit skip end value
+    std::for_each(mLoopValues.begin(),
+                  mLoopValues.end(),
+                  [this](int& value) { value = (value >= mBufferLength ? mBufferLength - 1 : value); });
+    
+    return mLoopValues;
+}
+
+void CDSkip::setBufferLength(int newBufferLen)
+{
+    mBufferLength = std::clamp<int>(newBufferLen, 0, 352800, std::less<int>());
+    mCounter = 0;
+    mSegmentCounter = 0;
+}
+
+void CDSkip::setBufferDivisions(int newNumDivisions)
+{
+    mBufferDivisions = newNumDivisions;
+    mBufferSegmentLength = mBufferLength / mBufferDivisions;
+}
+
+// broken player
+//==============================================================================
 BrokenPlayer::BrokenPlayer() {}
 
-//==============================================================================
 void BrokenPlayer::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     juce::dsp::ProcessSpec spec;
@@ -19,7 +122,6 @@ void BrokenPlayer::prepareToPlay(double sampleRate, int samplesPerBlock)
     spec.numChannels = getTotalNumInputChannels();
     
     mCircularBuffer.prepare(spec);
-//    bitcrusher.prepare(spec);
     
     mReadPosition.resize(getTotalNumInputChannels());
     mPlaybackRate.resize(getTotalNumInputChannels());
@@ -27,19 +129,19 @@ void BrokenPlayer::prepareToPlay(double sampleRate, int samplesPerBlock)
     std::fill(mReadPosition.begin(), mReadPosition.end(), 0);
     std::fill(mPlaybackRate.begin(), mPlaybackRate.end(), 1.0);
     
-    std::for_each(tapeSpeedLine.begin(),
-                  tapeSpeedLine.end(),
+    std::for_each(mTapeSpeedLine.begin(),
+                  mTapeSpeedLine.end(),
                   [this](auto& line)
     {
-        line.setParameters(rampTime);
+        line.setParameters(mRampTime);
         line.reset(getSampleRate());
     });
     
-    std::for_each(tapeStopLine.begin(),
-                  tapeStopLine.end(),
+    std::for_each(mTapeStopLine.begin(),
+                  mTapeStopLine.end(),
                   [this](auto& line)
     {
-        line.setParameters(rampTime);
+        line.setParameters(mRampTime);
         line.reset(getSampleRate());
     });
     
@@ -59,7 +161,6 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
-    //clockCycle = static_cast<int>(clockPeriod * (getSampleRate() / 1000));
     //================ channel/sample loops ================
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
     {
@@ -70,43 +171,43 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
             //================ clock, clocked settings ================
-            if (shouldUseExternalClock == false)
+            if (mShouldUseExternalClock == false)
             {
                 if (channel == 0)
                 {
-                    if (clockCounter == 0)
+                    if (mClockCounter == 0)
                     {
                         receiveClockedPulse();
-                        ++clockCounter;
+                        ++mClockCounter;
                     }
                     else
                     {
-                        ++clockCounter;
-                        clockCounter %= clockCycle;
+                        ++mClockCounter;
+                        mClockCounter %= mClockCycle;
                     }
                 }
             }
             
             //================ tape speed adjustments ================
             // ramp back up if stop completed
-            float tapeStopSpeed = tapeStopLine.at(channel).renderAudioOutput();
+            float tapeStopSpeed = mTapeStopLine.at(channel).renderAudioOutput();
             if (tapeStopSpeed < 0.01)
             {
-                tapeStopLine.at(channel).setParameters(133);
-                tapeStopLine.at(channel).setDestination(1.0f);
+                mTapeStopLine.at(channel).setParameters(133);
+                mTapeStopLine.at(channel).setDestination(1.0f);
             }
             
-            mPlaybackRate.at(channel) = tapeSpeedLine.at(channel).renderAudioOutput() * tapeDirMultiplier;
+            mPlaybackRate.at(channel) = mTapeSpeedLine.at(channel).renderAudioOutput() * mTapeDirMultiplier;
             mPlaybackRate.at(channel) *= tapeStopSpeed;
             
             //================ playback ================
             //================ repeats ================
             if (mNumRepeats > 1)
             {
-                if (channel == 0 && repeatsCounter.at(channel) == 0)
-                    repeatsValues = repeater.advanceCtrAndReturn();
-                if (repeatsCounter.at(channel) == 0)
-                    mReadPosition.at(channel) = repeatsValues.at(0);
+                if (channel == 0 && mRepeatsCounter.at(channel) == 0)
+                    mRepeatsValues = mRepeater.advanceCtrAndReturn();
+                if (mRepeatsCounter.at(channel) == 0)
+                    mReadPosition.at(channel) = mRepeatsValues.at(0);
             }
             
             //================ old tape skips ================
@@ -148,9 +249,9 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
 //            }
 
             //================ loops ================
-            if (skipProb.at(channel) < randomLoopProb)
+            if (mSkipProb.at(channel) < mRandomLoopProb)
             {
-                std::vector<int> randomLoop = randomLooper.at(channel).advanceCtrAndReturn();
+                std::vector<int> randomLoop = mRandomLooper.at(channel).advanceCtrAndReturn();
                 
                 channelData[sample] = mCircularBuffer.readSample(channel, mReadPosition.at(channel));
                 
@@ -172,38 +273,38 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
             // wrap repeats counter/value
             if (mNumRepeats > 1)
             {
-                ++repeatsCounter.at(channel);
-                if (repeatsCounter.at(channel) >= repeatsValues.at(1))
-                    repeatsCounter.at(channel) = 0;
+                ++mRepeatsCounter.at(channel);
+                if (mRepeatsCounter.at(channel) >= mRepeatsValues.at(1))
+                    mRepeatsCounter.at(channel) = 0;
             }
             
-        } // sample loop
-    } // channel loop
+        } // end sample loop
+    } // end channel loop
     
     // new distortion processor, if necessary
-    if (currentDist != prevDist)
+    if (mCurrentDist != mPrevDist)
     {
-        slotProcessor = distortionFactory.create(currentDist);
+        mSlotProcessor = mDistortionFactory.create(mCurrentDist);
         
-        if (slotProcessor != nullptr)
+        if (mSlotProcessor != nullptr)
         {
             juce::dsp::ProcessSpec spec;
             spec.sampleRate = getSampleRate();
             spec.maximumBlockSize = buffer.getNumSamples();
             spec.numChannels = buffer.getNumChannels();
             
-            slotProcessor->prepare(spec);
+            mSlotProcessor->prepare(spec);
         }
         
-        prevDist = currentDist;
+        mPrevDist = mCurrentDist;
     }
     
     // apply correct distortion
-    if (useDist > 0)
+    if (mUseDist > 0)
     {
-        if (slotProcessor != nullptr)
+        if (mSlotProcessor != nullptr)
         {
-            slotProcessor->processBlock(buffer, midiMessages);
+            mSlotProcessor->processBlock(buffer, midiMessages);
         }
     }
 }
@@ -211,10 +312,10 @@ void BrokenPlayer::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuff
 //==============================================================================
 void BrokenPlayer::reset()
 {    
-    for (int line = 0; line < tapeSpeedLine.size(); ++line)
+    for (int line = 0; line < mTapeSpeedLine.size(); ++line)
     {
-        tapeSpeedLine.at(line).reset(getSampleRate());
-        tapeStopLine.at(line).reset(getSampleRate());
+        mTapeSpeedLine.at(line).reset(getSampleRate());
+        mTapeStopLine.at(line).reset(getSampleRate());
     }
 }
 
@@ -240,92 +341,92 @@ void BrokenPlayer::setStateInformation(const void*, int) {}
 void BrokenPlayer::receiveClockedPulse()
 {
     //================ L/R tape speed destinations ================
-    std::for_each(tapeSpeedLine.begin(),
-                  tapeSpeedLine.end(),
+    std::for_each(mTapeSpeedLine.begin(),
+                  mTapeSpeedLine.end(),
                   [this](Line<float>& line)
                   {
-        if (randomFloat() < tapeBendProb)
+        if (randomFloat() < mTapeBendProb)
         {
-            int index = rand() % tapeBendDepth;
-            float dest = tapeBendVals.at(index);
+            int index = rand() % mTapeBendDepth;
+            float dest = mTapeBendVals.at(index);
             line.setDestination(dest);
         }
     });
     
-    if (randomFloat() < tapeRevProb)
-        tapeDirMultiplier = -1;
+    if (randomFloat() < mTapeRevProb)
+        mTapeDirMultiplier = -1;
     else
-        tapeDirMultiplier = 1;
+        mTapeDirMultiplier = 1;
     
     //================ L/R tape stops ================
-    std::for_each(tapeStopLine.begin(),
-                  tapeStopLine.end(),
+    std::for_each(mTapeStopLine.begin(),
+                  mTapeStopLine.end(),
                   [this](Line<float>& line)
                   {
-        if (randomFloat() < tapeStopProb)
+        if (randomFloat() < mTapeStopProb)
         {
-            line.setParameters(rampTime);
+            line.setParameters(mRampTime);
             line.setDestination(0);
         }
     });
     
     //================ skip/loop probs ================
-    std::for_each(skipProb.begin(),
-                  skipProb.end(),
+    std::for_each(mSkipProb.begin(),
+                  mSkipProb.end(),
                   [this](float& prob){ prob = randomFloat(); });
     
     //================ distortion FX ================
     // dist
-    useDist = (randomFloat() < std::clamp<float>(distortionProb * 3, 0.0, 1.0, [](const float& a, const float& b) { return a < b; }));
+    mUseDist = (randomFloat() < std::clamp<float>(mDistortionProb * 3, 0.0, 1.0, [](const float& a, const float& b) { return a < b; }));
     
-    float scaledProb = powf(distortionProb, 3.0f);
+    float scaledProb = powf(mDistortionProb, 3.0f);
     
-    if (slotProcessor != nullptr)
+    if (mSlotProcessor != nullptr)
     {
-        distortionParameters = slotProcessor->getParameters();
+        mDistortionParameters = mSlotProcessor->getParameters();
         
-        distortionParameters.bitDepth = static_cast<int>(floor( scale(scaledProb * -1 + 1, 0.0f, 1.0f, 5.0f, 12.0f) + 0.5) + (randomFloat() * 3));
+        mDistortionParameters.bitDepth = static_cast<int>(floor( scale(scaledProb * -1 + 1, 0.0f, 1.0f, 5.0f, 12.0f) + 0.5) + (randomFloat() * 3));
         
-        distortionParameters.downsampling = static_cast<int>( scale(scaledProb, 0.0f, 1.0f, 2.0f, 15.0f) + (randomFloat() * (1 + (scaledProb * 16))) );
+        mDistortionParameters.downsampling = static_cast<int>( scale(scaledProb, 0.0f, 1.0f, 2.0f, 15.0f) + (randomFloat() * (1 + (scaledProb * 16))) );
         
-        distortionParameters.drive = scale(distortionProb, 0.0f, 1.0f, 3.0f, 15.0f) + (randomFloat() * distortionProb * 21.0f);
+        mDistortionParameters.drive = scale(mDistortionProb, 0.0f, 1.0f, 3.0f, 15.0f) + (randomFloat() * mDistortionProb * 21.0f);
         
-        slotProcessor->setParameters(distortionParameters);
+        mSlotProcessor->setParameters(mDistortionParameters);
     }
 }
 //==============================================================================
 void BrokenPlayer::setAnalogFX(float newAnalogFX)
 {
-    tapeBendProb = newAnalogFX;
+    mTapeBendProb = newAnalogFX;
     
     if (newAnalogFX == 0)
     {
-        tapeBendDepth = 0;
-        std::for_each(tapeSpeedLine.begin(),
-                      tapeSpeedLine.end(),
+        mTapeBendDepth = 0;
+        std::for_each(mTapeSpeedLine.begin(),
+                      mTapeSpeedLine.end(),
                       [this](Line<float>& line) { line.setDestination(1.0f); });
     }
     else if (newAnalogFX > 0 && newAnalogFX < 0.35)
-        tapeBendDepth = 2;
+        mTapeBendDepth = 2;
     else
-        tapeBendDepth = 4;
+        mTapeBendDepth = 4;
     
-    tapeRevProb = std::clamp<float>(newAnalogFX * 1.5, 0.0, 0.8, std::less<float>());
+    mTapeRevProb = std::clamp<float>(newAnalogFX * 1.5, 0.0, 0.8, std::less<float>());
     
-    tapeStopProb = 0.4 * powf(newAnalogFX, 1.5);
+    mTapeStopProb = 0.4 * powf(newAnalogFX, 1.5);
 }
 void BrokenPlayer::setDigitalFX(float newDigitalFX)
 {
-    randomLoopProb = powf(newDigitalFX, 0.707f);
+    mRandomLoopProb = powf(newDigitalFX, 0.707f);
 }
-void BrokenPlayer::setLofiFX(float newLofiFX) { distortionProb = newLofiFX; }
-void BrokenPlayer::setDistortionType(int newDist) { currentDist = newDist; }
+void BrokenPlayer::setLofiFX(float newLofiFX) { mDistortionProb = newLofiFX; }
+void BrokenPlayer::setDistortionType(int newDist) { mCurrentDist = newDist; }
 void BrokenPlayer::setBufferLength(int newBufferLength)
 {
     mBentBufferLength = std::clamp<int>(newBufferLength, 0, 352800, std::less<int>());
     
-    std::for_each(randomLooper.begin(),
-                  randomLooper.end(),
+    std::for_each(mRandomLooper.begin(),
+                  mRandomLooper.end(),
                   [&newBufferLength](RandomLoop& looper)
     {
         looper.setBufferLength(std::clamp<int>(newBufferLength, 0, 352800, std::less<int>()));
@@ -336,7 +437,7 @@ void BrokenPlayer::setBufferLength(int newBufferLength)
                   [&newBufferLength](CDSkip& skipper)
     {
      */
-    repeater.setBufferLength(std::clamp<int>(newBufferLength, 0, 352800, std::less<int>()));
+    mRepeater.setBufferLength(std::clamp<int>(newBufferLength, 0, 352800, std::less<int>()));
     //});
 }
 void BrokenPlayer::newNumRepeats(int newRepeatCount)
@@ -347,10 +448,10 @@ void BrokenPlayer::newNumRepeats(int newRepeatCount)
                   [&newRepeatCount](CDSkip& skipper)
     {
      */
-    repeater.setBufferDivisions(newRepeatCount);
+    mRepeater.setBufferDivisions(newRepeatCount);
     mNumRepeats = newRepeatCount;
     //});
 }
-void BrokenPlayer::setClockSpeed(int newClockSpeed) { clockCycle = newClockSpeed; }
+void BrokenPlayer::setClockSpeed(int newClockSpeed) { mClockCycle = newClockSpeed; }
 //void BrokenPlayer::setClockSpeed(float newClockSpeed) { clockPeriod = newClockSpeed; }
-void BrokenPlayer::useExternalClock(bool newShouldUseExternalClock) { shouldUseExternalClock = newShouldUseExternalClock; }
+void BrokenPlayer::useExternalClock(bool newShouldUseExternalClock) { mShouldUseExternalClock = newShouldUseExternalClock; }

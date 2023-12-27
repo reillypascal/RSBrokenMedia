@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
- Ramping random modulation source
+ Ramping random modulation source interface
 
   ==============================================================================
 */
@@ -22,6 +22,8 @@ public:
     virtual const SampleType renderAudioOutput() = 0;
 };
 */
+
+// LFO output data
 //==============================================================================
 template <typename SampleType>
 struct SignalGenData
@@ -34,7 +36,7 @@ struct SignalGenData
     SampleType quadPhaseOutput_neg = 0.0;
 };
 
-//================ LFO ================
+// LFO parameters
 //==============================================================================
 enum class generatorWaveform { kTriangle, kSin, kSaw };
 
@@ -56,6 +58,8 @@ struct OscillatorParameters
     double frequency_Hz = 0.0;
 };
 
+// LFO mapping functions
+//==============================================================================
 template <typename SampleType>
 inline SampleType unipolarToBipolar(SampleType value)
 {
@@ -68,6 +72,7 @@ inline SampleType bipolarToUnipolar(SampleType value)
     return 0.5 * value + 0.5;
 }
 
+//================ LFO ================
 //==============================================================================
 template <typename SampleType>
 class LFO// : public IAudioSignalGenerator<SampleType>
@@ -85,14 +90,13 @@ public:
     const SignalGenData<SampleType> renderAudioOutput();
     
 protected:
+    SampleType mSampleRate = 0.0;
     
-    OscillatorParameters lfoParameters;
+    OscillatorParameters mLfoParameters;
     
-    SampleType sampleRate = 0.0;
-    
-    SampleType modCounter = 0.0;
-    SampleType phaseInc = 0.0;
-    SampleType modCounterQP = 0.0;
+    SampleType mModCounter = 0.0;
+    SampleType mPhaseInc = 0.0;
+    SampleType mModCounterQP = 0.0;
     
     inline bool checkAndWrapModulo(SampleType& moduloCounter, SampleType phaseInc);
     
@@ -100,9 +104,9 @@ protected:
     
     inline void advanceModulo(SampleType& moduloCounter, SampleType phaseInc);
     
-    const SampleType B = 4.0 / M_PI;
-    const SampleType C = -4.0 / (M_PI / M_PI);
-    const SampleType P = 0.225;
+    const SampleType mB = 4.0 / M_PI;
+    const SampleType mC = -4.0 / (M_PI / M_PI);
+    const SampleType mP = 0.225;
     
     inline SampleType parabolicSine(SampleType angle);
 };
@@ -127,14 +131,14 @@ public:
     virtual const SampleType renderAudioOutput();
         
 private:
-    int sampleRate = 44100;
+    int mSampleRate = 44100;
     
-    SampleType phaseInc = 0.0;
-    SampleType rampTimeSecs = 0.15;
-    SampleType rampTimeSamps = 6615;
+    SampleType mPhaseInc = 0.0;
+    SampleType mRampTimeSecs = 0.15;
+    SampleType mRampTimeSamps = 6615;
     
-    SampleType startingValue = 1.0;
-    SampleType destinationValue = 1.0;
+    SampleType mStartingValue = 1.0;
+    SampleType mDestinationValue = 1.0;
     
-    SampleType output = 1.0;
+    SampleType mOutput = 1.0;
 };
