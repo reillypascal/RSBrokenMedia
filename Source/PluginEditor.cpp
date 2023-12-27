@@ -44,6 +44,10 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     addAndMakeVisible(dryWetMixLabel);
     
     // menu labels
+    distLabel.setText("Dist. Type:", juce::dontSendNotification);
+    distLabel.setJustificationType(juce::Justification::right);
+    addAndMakeVisible(distLabel);
+    
     codecModeLabel.setText("Codec:", juce::dontSendNotification);
     codecModeLabel.setJustificationType(juce::Justification::right);
     addAndMakeVisible(codecModeLabel);
@@ -112,13 +116,21 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     dryWetMixAttachment.reset(new SliderAttachment(valueTreeState, "dryWetMix", dryWetMixSlider));
     
     // menus
+    addAndMakeVisible(distMenu);
+    distMenu.addItem("Bitcrusher", 1);
+    distMenu.addItem("Saturation", 2);
+    distMenu.setSelectedId(1);
+    distMenu.setTextWhenNothingSelected("Bitcrusher");
+    distMenu.setJustificationType(juce::Justification::centred);
+    distMenuAttachment.reset(new ComboBoxAttachment(valueTreeState, "distType", distMenu));
+    
     addAndMakeVisible(codecModeMenu);
     using enum CodecModes;
     codecModeMenu.addItem("None", static_cast<int>(normal));
     codecModeMenu.addItem("Mu-Law", static_cast<int>(mulaw));
     codecModeMenu.addItem("GSM 06.10", static_cast<int>(gsm610));
     codecModeMenu.setSelectedId(static_cast<int>(normal));
-    codecModeMenu.setTextWhenNothingSelected("Codec:");
+    codecModeMenu.setTextWhenNothingSelected("None");
     codecModeMenu.setJustificationType(juce::Justification::centred);
     codecModeMenuAttachment.reset(new ComboBoxAttachment(valueTreeState, "codec", codecModeMenu));
     
@@ -133,7 +145,7 @@ RSBrokenMediaAudioProcessorEditor::RSBrokenMediaAudioProcessorEditor (RSBrokenMe
     downsamplingMenu.addItem("x7", 7);
     downsamplingMenu.addItem("x8", 8);
     downsamplingMenu.setSelectedId(1);
-    downsamplingMenu.setTextWhenNothingSelected("Downsamp:");
+    downsamplingMenu.setTextWhenNothingSelected("None");
     downsamplingMenu.setJustificationType(juce::Justification::centred);
     downsamplingMenuAttachment.reset(new ComboBoxAttachment(valueTreeState, "downsampling", downsamplingMenu));
     
@@ -256,6 +268,14 @@ void RSBrokenMediaAudioProcessorEditor::resized()
                              textLabelHeight);
     
     // menus
+    distLabel.setBounds(getWidth() - 25 - 657,
+                        getHeight() - 25 - menuHeight,
+                        95,
+                        menuHeight);
+    distMenu.setBounds(getWidth() - 25 - 560,
+                       getHeight() - 25 - menuHeight,
+                       125,
+                       menuHeight);
     codecModeLabel.setBounds(getWidth() - 25 - 435,
                              getHeight() - 25 - menuHeight,
                              75,

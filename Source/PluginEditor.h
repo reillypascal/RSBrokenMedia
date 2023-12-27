@@ -70,6 +70,7 @@ private:
     juce::Label repeatsLabel;
     juce::Label dryWetMixLabel;
     
+    juce::Label distLabel;
     juce::Label codecModeLabel;
     juce::Label downsamplingLabel;
     
@@ -84,6 +85,7 @@ private:
     
     juce::TextButton clockModeButton;
     
+    juce::ComboBox distMenu;
     juce::ComboBox codecModeMenu;
     juce::ComboBox downsamplingMenu;
     
@@ -115,6 +117,7 @@ private:
     
     std::unique_ptr<ButtonAttachment> clockModeAttachment;
     
+    std::unique_ptr<ComboBoxAttachment> distMenuAttachment;
     std::unique_ptr<ComboBoxAttachment> codecModeMenuAttachment;
     std::unique_ptr<ComboBoxAttachment> downsamplingMenuAttachment;
     

@@ -107,7 +107,7 @@ void ChebyDrive::setParameters(const LofiProcessorParameters& params)
 }
 
 //==============================================================================
-SaturationProcessor::SaturationProcessor() = default;
+SaturationProcessor::SaturationProcessor() : mLowCutFilter(juce::dsp::IIR::Coefficients<float>::makeHighPass(44100, 75.0f)) {}
 
 SaturationProcessor::~SaturationProcessor() = default;
 
@@ -116,25 +116,32 @@ void SaturationProcessor::prepare(const juce::dsp::ProcessSpec& spec)
     mSampleRate = spec.sampleRate;
     mNumChannels = spec.numChannels;
     
-    mLowCutFilterCoefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(mSampleRate, 75);
+    mLowCutFilter.reset();
+    mLowCutFilter.prepare(spec);
     
-    mLowCutFilter.resize(mNumChannels);
-    for (int i = 0; i < mNumChannels; ++i)
-    {
-        mLowCutFilter[i].reset();
-        mLowCutFilter[i].prepare(spec);
-        mLowCutFilter[i].coefficients = mLowCutFilterCoefficients;
-    }
+//    mLowCutFilterCoefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(mSampleRate, 75.0, 0.707);
     
+//    mLowCutFilter.resize(mNumChannels);
+//    for (int i = 0; i < mNumChannels; ++i)
+//    {
+//        mLowCutFilter[i].reset();
+//        mLowCutFilter[i].prepare(spec);
+//        mLowCutFilter[i].coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(mSampleRate, 75.0f);
+//    }
+//    
     reset();
 }
 
 void SaturationProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+    juce::ScopedNoDenormals noDenormals;
     int numSamples = buffer.getNumSamples();
     int numChannels = buffer.getNumChannels();
     
     float saturationGainLin = pow(10.0f, parameters.drive / 20.0f);
+    
+    juce::dsp::AudioBlock<float> block(buffer);
+    mLowCutFilter.process(juce::dsp::ProcessContextReplacing<float> (block));
     
     // drive
     for (int channel = 0; channel < numChannels; ++channel)
@@ -143,10 +150,8 @@ void SaturationProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         
         for (int sample = 0; sample < numSamples; ++sample)
         {
-            channelData[sample] = softClip(saturationGainLin * channelData[sample]);
-            
-//            channelData[sample] = mLowCutFilter[channel].processSample(channelData[sample]);
-//            mLowCutFilter[channel].snapToZero();
+            channelData[sample] = std::tanh(saturationGainLin * channelData[sample]);
+            channelData[sample] *= 0.5f;
         }
     }
 }

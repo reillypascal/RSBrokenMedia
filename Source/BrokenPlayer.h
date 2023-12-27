@@ -29,9 +29,9 @@ struct DistortionFactory
     std::map<int,
              std::function<std::unique_ptr<LofiProcessorBase>()>> processorMapping
     {
-        { 1, []() { return std::make_unique<Bitcrusher>(); } },
-        { 2, []() { return std::make_unique<SaturationProcessor>(); } }/*,
-        { 3, []() { return std::make_unique<ChebyDrive>(); } }*/
+        { 0, []() { return std::make_unique<Bitcrusher>(); } },
+        { 1, []() { return std::make_unique<SaturationProcessor>(); } }/*,
+        { 2, []() { return std::make_unique<ChebyDrive>(); } }*/
     };
 };
 
@@ -260,7 +260,7 @@ private:
 //    LofiProcessorParameters bitcrusherParameters;
     
     bool useDist { false };
-    int currentDist { 2 };
+    int currentDist { 0 };
     int prevDist { -1 };
     
     DistortionFactory distortionFactory {};

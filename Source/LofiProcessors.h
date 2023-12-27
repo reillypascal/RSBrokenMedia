@@ -95,9 +95,8 @@ private:
     
     float softClip(float x);
     
-    juce::dsp::IIR::Coefficients<float>::Ptr mLowCutFilterCoefficients;
-    using IIR = juce::dsp::IIR::Filter<float>;
-    std::vector<IIR> mLowCutFilter;
+//    juce::dsp::IIR::Coefficients<float>::Ptr mLowCutFilterCoefficients;
+    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> mLowCutFilter;
 };
 
 //==============================================================================

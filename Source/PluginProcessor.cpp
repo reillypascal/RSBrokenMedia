@@ -67,6 +67,10 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
         std::make_unique<juce::AudioParameterBool>(juce::ParameterID { "clockMode", 1 },
                                                     "Clock Mode",
                                                     false),
+        std::make_unique<juce::AudioParameterChoice>(juce::ParameterID { "distType", 1 },
+                                                    "Dist Menu",
+                                                     juce::StringArray { "Bitcrush", "Saturation" },
+                                                    0),
         std::make_unique<juce::AudioParameterChoice>(juce::ParameterID { "codec", 1 },
                                                     "Codec Menu",
                                                      juce::StringArray { "None", "MuLaw", "GSM" },
@@ -87,6 +91,7 @@ RSBrokenMediaAudioProcessor::RSBrokenMediaAudioProcessor()
     repeatsParameter = parameters.getRawParameterValue("repeats");
     dryWetMixParameter = parameters.getRawParameterValue("dryWetMix");
     
+    distMenuParameter = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("distType"));
     codecMenuParameter = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("codec"));
     downsamplingMenuParameter = static_cast<juce::AudioParameterChoice*>(parameters.getParameter("downsampling"));
 }
@@ -272,6 +277,7 @@ void RSBrokenMediaAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     brokenPlayer.setAnalogFX(analogFX);
     brokenPlayer.setDigitalFX(digitalFX);
     brokenPlayer.setLofiFX(lofiFX);
+    brokenPlayer.setDistortionType(distMenuParameter->getIndex());
     
     brokenPlayer.useExternalClock(useDawClock);
     if (useDawClock == true)

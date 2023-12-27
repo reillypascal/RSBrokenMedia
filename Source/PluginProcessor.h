@@ -95,6 +95,7 @@ private:
     std::atomic<float>* repeatsParameter = nullptr;
     std::atomic<float>* dryWetMixParameter = nullptr;
     
+    juce::AudioParameterChoice* distMenuParameter = nullptr;
     juce::AudioParameterChoice* codecMenuParameter = nullptr;
     juce::AudioParameterChoice* downsamplingMenuParameter = nullptr;
     

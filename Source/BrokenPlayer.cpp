@@ -288,7 +288,7 @@ void BrokenPlayer::receiveClockedPulse()
         
         distortionParameters.downsampling = static_cast<int>( scale(scaledProb, 0.0f, 1.0f, 2.0f, 15.0f) + (randomFloat() * (1 + (scaledProb * 16))) );
         
-        distortionParameters.drive = scale(distortionProb, 0.0f, 1.0f, 0.0f, 12.0f) + (randomFloat() * distortionProb * 24.0f);
+        distortionParameters.drive = scale(distortionProb, 0.0f, 1.0f, 3.0f, 15.0f) + (randomFloat() * distortionProb * 21.0f);
         
         slotProcessor->setParameters(distortionParameters);
     }
@@ -319,7 +319,7 @@ void BrokenPlayer::setDigitalFX(float newDigitalFX)
     randomLoopProb = powf(newDigitalFX, 0.707f);
 }
 void BrokenPlayer::setLofiFX(float newLofiFX) { distortionProb = newLofiFX; }
-void BrokenPlayer::setDistortionType(int newDist) { /*currentDist = newDist;*/ }
+void BrokenPlayer::setDistortionType(int newDist) { currentDist = newDist; }
 void BrokenPlayer::setBufferLength(int newBufferLength)
 {
     mBentBufferLength = std::clamp<int>(newBufferLength, 0, 352800, std::less<int>());
