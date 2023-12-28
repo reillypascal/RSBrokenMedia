@@ -25,7 +25,7 @@ inline float scale(float input, float inLow, float inHi, float outLow, float out
 inline float wrap(float a, float b)
 {
     float mod = fmodf(a, b);
-    return (a >= 0 ? 0 : b) + (mod > __FLT_EPSILON__ || !isnan(mod) ? mod : 0);
+    return (a >= 0 ? 0 : b) + (mod > __FLT_EPSILON__ || !std::isnan(mod) ? mod : 0);
 }
 
 struct LofiProcessorParameters
