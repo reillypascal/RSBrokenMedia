@@ -4,7 +4,7 @@ Generates new stereo tape speeds, CD skipping patterns, and distortion effects o
 
 Dropdowns offer bitcrushing/saturation modes for the "Distortion FX" knob, as well as global codec and downsampling options. Codecs currently include "μ-law" nonlinear 8-bit and the [GSM 06.10](https://quut.com/gsm/) cell phone codec.
 
-![Plugin user interface with a row of 3 primary knobs, a row of 4 secondary knobs, and dropdowns at the bottom for changing distortion type, codec, and sample rate](https://github.com/reillypascal/RSBrokenMedia/assets/94489575/e89a9f13-777b-4a0e-8ec0-9c5e29a5f5d5)
+![Plugin user interface with a row of 3 primary knobs (analog, digital, and distortion FX); a row of 4 secondary knobs (clock rate, buffer length, repeats, and wet/dry); and dropdowns at the bottom for changing distortion type, codec, and sample rate](https://github.com/reillypascal/RSBrokenMedia/assets/94489575/e89a9f13-777b-4a0e-8ec0-9c5e29a5f5d5)
 
 ## Build Dependencies:
 - JUCE (https://juce.com/download/)
