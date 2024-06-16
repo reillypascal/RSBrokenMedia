@@ -34,6 +34,6 @@ public:
         setColour(juce::TextButton::textColourOnId, juce::Colours::black);
         
         // fonts
-        setDefaultSansSerifTypeface(juce::LookAndFeel::getTypefaceForFont(juce::Font("Verdana", 18.0f, juce::Font::plain)));
+//        setDefaultSansSerifTypeface(juce::LookAndFeel::getTypefaceForFont(juce::Font("Verdana", 18.0f, juce::Font::plain)));
     }
 };

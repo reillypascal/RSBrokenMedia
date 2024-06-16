@@ -165,10 +165,10 @@ void RSBrokenMediaAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::aliceblue);
     // Title
-    g.setFont (juce::Font("Verdana", 32.0f, juce::Font::plain));
+    g.setFont (32.0f);
     g.drawFittedText ("RS Broken Media", 25, 10, 350, 45, juce::Justification::left, 1);
     // info
-    g.setFont (juce::Font("Verdana", 16.0f, juce::Font::plain));
+    g.setFont (16.0f);
     g.drawFittedText ("Version 0.3.0\n reillyspitzfaden.com", getWidth() - 375, 15, 350, 45, juce::Justification::right, 2);
     
     // panels
