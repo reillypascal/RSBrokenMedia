@@ -169,7 +169,7 @@ void RSBrokenMediaAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText ("RS Broken Media", 25, 10, 350, 45, juce::Justification::left, 1);
     // info
     g.setFont (16.0f);
-    g.drawFittedText ("Version 0.3.0\n reillyspitzfaden.com", getWidth() - 375, 15, 350, 45, juce::Justification::right, 2);
+    g.drawFittedText ("Version 0.3.1\n reillyspitzfaden.com", getWidth() - 375, 15, 350, 45, juce::Justification::right, 2);
     
     // panels
     // tried 93,107,128 (outlive max patch)
